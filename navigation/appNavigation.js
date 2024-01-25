@@ -1,16 +1,21 @@
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createDrawerNavigator } from "@react-navigation/drawer";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import "react-native-gesture-handler";
 
 import HomeScreen from "../screens/Home/HomeScreen";
 import Header from "../components/Header";
-import DetailRoomScreen from "../screens/DetailRoom/DetailRoomScreen";
 import MenuItem from "../components/MenuItem";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { faChartSimple, faHouseChimney } from "@fortawesome/free-solid-svg-icons";
+import StatisticScreen from "../screens/Statistic/StatisticScreen";
+import CustomerInfoScreen from "../screens/DetailRoom/CustomerInfo/CustomerInfoScreen";
+import RoomPayment from "../screens/DetailRoom/RoomPayment/RoomPaymentScreen";
+import HeaderNoSideBar from "../components/HeaderNoSideBar";
 
 const Drawer = createDrawerNavigator();
+const Stack = createNativeStackNavigator();
 
 export default function AppNavigation() {
     return (
@@ -25,12 +30,30 @@ export default function AppNavigation() {
                         }
                     }} />
 
-                <Drawer.Screen name="Chi tiết"
-                    component={DetailRoomScreen}
+                <Drawer.Screen name="Thống kê"
+                    component={StatisticScreen}
                     options={({ navigation }) => {
                         return {
                             header: () => <Header title="Thống kê" navigation={navigation} />,
                             drawerLabel: () => <MenuItem title="Thống kê" icon={<FontAwesomeIcon icon={faChartSimple} />} />
+                        }
+                    }} />
+
+                <Drawer.Screen name="Chi tiết"
+                    component={CustomerInfoScreen}
+                    options={({ navigation }) => {
+                        return {
+                            header: () => <HeaderNoSideBar title="Thông tin người ở" navigation={navigation} />,
+                            drawerItemStyle: { height: 0 }
+                        }
+                    }} />
+
+                <Drawer.Screen name="Thanh toán"
+                    component={RoomPayment}
+                    options={({ navigation }) => {
+                        return {
+                            header: () => <HeaderNoSideBar title="Thanh toán tiền phòng" navigation={navigation} />,
+                            drawerItemStyle: { height: 0 }
                         }
                     }} />
             </Drawer.Navigator>

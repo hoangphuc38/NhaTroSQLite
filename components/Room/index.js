@@ -1,12 +1,12 @@
 import React from "react";
 import styles from "./styles";
-import { View, Text } from "react-native"
+import { View, Text, TouchableOpacity } from "react-native"
 
-function Room({ numberRoom, isEmpty }) {
+function Room({ numberRoom, isEmpty, onPress }) {
     return (
-        <View style={isEmpty ? styles.Emptycontainer : styles.container}>
+        <TouchableOpacity style={isEmpty ? styles.Emptycontainer : styles.container} onPress={onPress}>
             <Text style={styles.numberRoom}>{numberRoom}</Text>
-        </View>
+        </TouchableOpacity>
     )
 }
 
