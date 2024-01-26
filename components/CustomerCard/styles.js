@@ -18,6 +18,19 @@ export default styles = StyleSheet.create({
 
     rightContent: {
         flex: 1,
+        gap: 10,
+    },
+
+    text: {
+        fontWeight: "bold",
+    },
+
+    multilines: {
+        gap: 5,
+    },
+
+    innerText: {
+        fontStyle: "italic"
     },
 
     imageWrapper: {

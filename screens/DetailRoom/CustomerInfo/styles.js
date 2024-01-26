@@ -7,4 +7,27 @@ export default styles = StyleSheet.create({
         paddingLeft: 10,
         paddingRight: 10,
     },
+
+    searchbar: {
+        marginBottom: 10,
+    },
+
+    listcontainer: {
+        flex: 1
+    },
+
+    containerSearchBar: {
+        backgroundColor: "transparent",
+        borderColor: "transparent",
+    },
+
+    inputContainer: {
+        borderRadius: 20,
+        backgroundColor: "white",
+    },
+
+    inputText: {
+        fontSize: 16,
+    }
+
 })
