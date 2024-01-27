@@ -8,11 +8,12 @@ import HomeScreen from "../screens/Home/HomeScreen";
 import Header from "../components/Header";
 import MenuItem from "../components/MenuItem";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
-import { faChartSimple, faHouseChimney } from "@fortawesome/free-solid-svg-icons";
+import { faChartSimple, faHouseChimney, faTableList } from "@fortawesome/free-solid-svg-icons";
 import StatisticScreen from "../screens/Statistic/StatisticScreen";
 import CustomerInfoScreen from "../screens/DetailRoom/CustomerInfo/CustomerInfoScreen";
 import RoomPayment from "../screens/DetailRoom/RoomPayment/RoomPaymentScreen";
 import HeaderNoSideBar from "../components/HeaderNoSideBar";
+import PriceTableScreen from "../screens/PriceTable/PriceTableScreen";
 
 const Drawer = createDrawerNavigator();
 const Stack = createNativeStackNavigator();
@@ -36,6 +37,15 @@ export default function AppNavigation() {
                         return {
                             header: () => <Header title="Thống kê" navigation={navigation} />,
                             drawerLabel: () => <MenuItem title="Thống kê" icon={<FontAwesomeIcon icon={faChartSimple} />} />
+                        }
+                    }} />
+
+                <Drawer.Screen name="Bảng giá"
+                    component={PriceTableScreen}
+                    options={({ navigation }) => {
+                        return {
+                            header: () => <Header title="Bảng giá" navigation={navigation} />,
+                            drawerLabel: () => <MenuItem title="Bảng giá" icon={<FontAwesomeIcon icon={faTableList} />} />
                         }
                     }} />
 

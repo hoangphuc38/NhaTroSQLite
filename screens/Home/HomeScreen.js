@@ -126,7 +126,9 @@ function HomeScreen({ navigation }) {
 
                                 <TouchableOpacity style={styles.contentWrapper}
                                     onPress={() => {
-                                        navigation.navigate('Thanh toán')
+                                        navigation.navigate('Thanh toán', {
+                                            room: roomNumber,
+                                        })
                                         setModalVisible(false)
                                     }}
                                 >

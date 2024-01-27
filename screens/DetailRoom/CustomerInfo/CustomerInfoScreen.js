@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { FlatList, View, Text } from "react-native";
 import styles from "./styles";
 import CustomerCard from "../../../components/CustomerCard";
-import { SearchBar } from "react-native-elements";
+import { SearchBar } from '@rneui/themed/dist/SearchBar';
 
 function CustomerInfoScreen() {
     const userList = [
