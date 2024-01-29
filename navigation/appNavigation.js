@@ -9,11 +9,13 @@ import Header from "../components/Header";
 import MenuItem from "../components/MenuItem";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { faChartSimple, faHouseChimney, faTableList } from "@fortawesome/free-solid-svg-icons";
-import StatisticScreen from "../screens/Statistic/StatisticScreen";
+
+
 import CustomerInfoScreen from "../screens/DetailRoom/CustomerInfo/CustomerInfoScreen";
 import RoomPayment from "../screens/DetailRoom/RoomPayment/RoomPaymentScreen";
 import HeaderNoSideBar from "../components/HeaderNoSideBar";
 import PriceTableScreen from "../screens/PriceTable/PriceTableScreen";
+import SummaryScreen from "../screens/Summary/SummaryScreen";
 
 const Drawer = createDrawerNavigator();
 const Stack = createNativeStackNavigator();
@@ -31,12 +33,12 @@ export default function AppNavigation() {
                         }
                     }} />
 
-                <Drawer.Screen name="Thống kê"
-                    component={StatisticScreen}
+                <Drawer.Screen name="Tổng kết tháng"
+                    component={SummaryScreen}
                     options={({ navigation }) => {
                         return {
-                            header: () => <Header title="Thống kê" navigation={navigation} />,
-                            drawerLabel: () => <MenuItem title="Thống kê" icon={<FontAwesomeIcon icon={faChartSimple} />} />
+                            header: () => <Header title="Tổng kết tháng" navigation={navigation} />,
+                            drawerLabel: () => <MenuItem title="Tổng kết tháng" icon={<FontAwesomeIcon icon={faChartSimple} />} />
                         }
                     }} />
 

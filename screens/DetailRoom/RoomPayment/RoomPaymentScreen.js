@@ -124,9 +124,8 @@ function RoomPayment({ route }) {
                         placeholderStyle={styles.placeholderStyle}
                         selectedTextStyle={styles.selectedTextStyle}
                         inputSearchStyle={styles.inputSearchStyle}
-                        iconStyle={styles.iconStyle}
                         data={YEAR}
-                        maxHeight={300}
+                        maxHeight={100}
                         labelField="label"
                         valueField="value"
                         placeholder={!isFocusYear ? getThisYear() : '...'}

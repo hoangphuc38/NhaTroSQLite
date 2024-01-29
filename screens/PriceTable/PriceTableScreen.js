@@ -25,7 +25,6 @@ function PriceTableScreen() {
                 <Text style={styles.cell}>{item.unit}</Text>
             </View>
         )
-
     }
 
     return (
@@ -43,7 +42,7 @@ function PriceTableScreen() {
 
                 <FlatList
                     data={data}
-                    keyExtractor={(item) => { item.id }}
+                    keyExtractor={item => item.id}
                     renderItem={({ item }) => renderItem(item)}
                 />
             </View>
