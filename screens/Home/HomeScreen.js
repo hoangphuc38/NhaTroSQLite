@@ -1,72 +1,42 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, FlatList, Modal, Pressable, TouchableHighlight, TouchableOpacity } from "react-native"
 import styles from "./styles";
 import { StatusBar } from "expo-status-bar";
 import Room from "../../components/Room";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { faChevronRight } from "@fortawesome/free-solid-svg-icons";
-
+import roomAPI from "../../api/roomAPI";
 
 function HomeScreen({ navigation }) {
-    const RoomData = [
-        {
-            id: '1',
-            roomNumber: '1',
-            isEmpty: true,
-            roomType: 'Ki ốt',
-        },
-        {
-            id: '2',
-            roomNumber: '2',
-            isEmpty: false,
-            roomType: 'Ki ốt',
-        },
-        {
-            id: '3',
-            roomNumber: '3',
-            isEmpty: false,
-            roomType: 'Phòng trọ',
-        },
-        {
-            id: '4',
-            roomNumber: '4',
-            isEmpty: true,
-            roomType: 'Phòng trọ',
-        },
-        {
-            id: '5',
-            roomNumber: '5',
-            isEmpty: false,
-            roomType: 'Phòng trọ',
-        },
-        {
-            id: '6',
-            roomNumber: '6',
-            isEmpty: false,
-            roomType: 'Phòng trọ',
-        },
-        {
-            id: '7',
-            roomNumber: '7',
-            isEmpty: false,
-            roomType: 'Phòng trọ',
-        },
-        {
-            id: '8',
-            roomNumber: '8',
-            isEmpty: true,
-            roomType: 'Phòng trọ',
-        },
-    ]
 
+    useEffect(() => {
+        const fetchAPI = async () => {
+            try {
+                const response = await roomAPI.getAll();
+                console.log("Success: ", response);
+                setRoomData(response);
+                setLoading(false);
+            }
+            catch (error) {
+                console.log("Xảy ra lỗi: ", error);
+                setLoading(false);
+            }
+        }
+
+        fetchAPI();
+    }, [])
+
+    const [loading, setLoading] = useState(true);
+    const [RoomData, setRoomData] = useState([]);
     const [modalVisible, setModalVisible] = useState(false);
     const [roomType, setRoomType] = useState("");
     const [roomNumber, setRoomNumber] = useState("");
 
     const ShowRoomInfo = (item) => {
         setModalVisible(true);
-        setRoomType(item.roomType);
-        setRoomNumber(item.roomNumber);
+        setRoomType(item.loaiPhong);
+        setRoomNumber(item.tenPhong);
+        console.log("so phong: ", item.tenPhong);
     }
 
     return (
@@ -85,19 +55,23 @@ function HomeScreen({ navigation }) {
                 </View>
             </View>
 
-            <FlatList
-                style={styles.list}
-                columnWrapperStyle={{ justifyContent: 'center' }}
-                horizontal={false}
-                numColumns={2}
-                data={RoomData}
-                renderItem={
-                    ({ item }) => <Room numberRoom={item.roomNumber}
-                        isEmpty={item.isEmpty}
-                        onPress={() => ShowRoomInfo(item)} />
-                }
-                keyExtractor={item => item.id}
-            />
+            {
+                loading ? <Text>Đang tải</Text>
+                    :
+                    <FlatList
+                        style={styles.list}
+                        columnWrapperStyle={{ justifyContent: 'center' }}
+                        horizontal={false}
+                        numColumns={2}
+                        data={RoomData}
+                        renderItem={
+                            ({ item }) => <Room numberRoom={item.tenPhong}
+                                isEmpty={item.danhSachNguoi.length > 0 ? true : false}
+                                onPress={() => ShowRoomInfo(item)} />
+                        }
+                        keyExtractor={item => item.id}
+                    />
+            }
 
             <Modal
                 animationType="fade"
@@ -110,13 +84,15 @@ function HomeScreen({ navigation }) {
                         <View style={styles.modalContent}>
                             <View style={styles.titleModal}>
                                 <Text style={styles.modalText}>Phòng số {roomNumber} - </Text>
-                                <Text style={styles.modalText}>{roomType}</Text>
+                                <Text style={styles.modalText}>{roomType === 1 ? 'Phòng trọ' : 'Ki-ốt'}</Text>
                             </View>
 
                             <View style={styles.content}>
                                 <TouchableOpacity style={styles.contentWrapper}
                                     onPress={() => {
-                                        navigation.navigate('Chi tiết')
+                                        navigation.navigate('Chi tiết', {
+                                            room: roomNumber
+                                        })
                                         setModalVisible(false)
                                     }}
                                 >

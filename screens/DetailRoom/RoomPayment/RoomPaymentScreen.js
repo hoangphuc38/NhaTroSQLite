@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Modal, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import styles from "./styles";
 import { Dropdown } from "react-native-element-dropdown";
 import { Button } from "@rneui/themed/dist/Button";
+import billAPI from "../../../api/billAPI";
 
 function RoomPayment({ route }) {
     const MONTH = [
@@ -31,6 +32,37 @@ function RoomPayment({ route }) {
 
     const { room } = route.params;
 
+    useEffect(() => {
+        const fetchAPI = async () => {
+            try {
+                let month = new Date();
+                let year = new Date();
+                const response = await billAPI.getHoaDonPhong(room, month.getMonth() + 1, year.getFullYear());
+
+                setElectricBillThisMonth(response.soDienThangNay.toString());
+                setSumElectricBill(response.tongSoDien.toString());
+
+                setWaterBillThisMonth(response.soNuocThangNay.toString());
+                setSumWaterBill(response.tongSoNuoc.toString())
+
+                console.log("so phong: ", room);
+                console.log("Success: ", response);
+                setData(response);
+            }
+            catch (error) {
+                console.log("Xảy ra lỗi: ", error);
+                setElectricBillThisMonth('');
+                setSumElectricBill('');
+
+                setWaterBillThisMonth('');
+                setSumWaterBill('')
+            }
+        }
+
+        fetchAPI();
+    }, [route])
+
+    const [data, setData] = useState([]);
     const [month, setMonth] = useState(null);
     const [isFocusMonth, setIsFocusMonth] = useState(false);
     const [year, setYear] = useState(null);

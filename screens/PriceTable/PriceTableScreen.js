@@ -1,30 +1,69 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FlatList, Modal, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import pricetableAPI from "../../api/pricatableAPI";
 
 function PriceTableScreen() {
-    const data = [
-        { id: '1', content: "Phòng ki-ốt", price: "900", unit: "nghìn đồng/tháng" },
-        { id: '2', content: "Phòng trọ", price: "800", unit: "nghìn đồng/tháng" },
-        { id: '3', content: "Điện", price: "3.5", unit: "nghìn đồng/kWh" },
-        { id: '4', content: "Nước", price: "12", unit: "nghìn đồng/khối" },
-        { id: '5', content: "Rác", price: "10", unit: "nghìn đồng/tháng" },
-    ]
+    useEffect(() => {
+        const fetchAPI = async () => {
+            try {
+                const response = await pricetableAPI.getAll();
+                console.log("Success: ", response);
+                setData(response);
+
+                setRoomKiotPrice(response[0].gia.toString());
+                setRoomOrdinaryPrice(response[1].gia.toString());
+                setElectricPrice(response[2].gia.toString());
+                setWaterPrice(response[3].gia.toString());
+                setRubbishPrice(response[4].gia.toString());
+
+                setLoading(false);
+            }
+            catch (error) {
+                console.log("Xảy ra lỗi: ", error);
+                setLoading(false);
+            }
+        }
+
+        fetchAPI();
+    }, [])
+
+    const [loading, setLoading] = useState(true);
+    const [data, setData] = useState({});
 
     const [modalVisible, setModalVisible] = useState(false);
-    const [roomKiotPrice, setRoomKiotPrice] = useState('900');
-    const [roomOrdinaryPrice, setRoomOrdinaryPrice] = useState('800');
-    const [electricPrice, setElectricPrice] = useState('3.5');
-    const [waterPrice, setWaterPrice] = useState('12');
-    const [rubbishPrice, setRubbishPrice] = useState('10');
+    const [roomKiotPrice, setRoomKiotPrice] = useState('');
+    const [roomOrdinaryPrice, setRoomOrdinaryPrice] = useState('');
+    const [electricPrice, setElectricPrice] = useState('');
+    const [waterPrice, setWaterPrice] = useState('');
+    const [rubbishPrice, setRubbishPrice] = useState('');
 
     const renderItem = (item) => {
-        return (
-            <View style={styles.row}>
-                <Text style={styles.cell}>{item.content}</Text>
-                <Text style={styles.cell}>{item.price}</Text>
-                <Text style={styles.cell}>{item.unit}</Text>
-            </View>
-        )
+        switch (item.hangMuc) {
+            case 'Dien':
+                return (
+                    <View style={styles.row}>
+                        <Text style={styles.cell}>Điện</Text>
+                        <Text style={styles.cell}>{item.gia}</Text>
+                        <Text style={styles.cell}>nghìn đồng/kWh</Text>
+                    </View>
+                )
+            case 'Nuoc':
+                return (
+                    <View style={styles.row}>
+                        <Text style={styles.cell}>Nước</Text>
+                        <Text style={styles.cell}>{item.gia}</Text>
+                        <Text style={styles.cell}>nghìn đồng/khối</Text>
+                    </View>
+                )
+            default:
+                return (
+                    <View style={styles.row}>
+                        <Text style={styles.cell}>{item.hangMuc}</Text>
+                        <Text style={styles.cell}>{item.gia}</Text>
+                        <Text style={styles.cell}>nghìn đồng/tháng</Text>
+                    </View>
+                )
+        }
     }
 
     return (
@@ -45,6 +84,7 @@ function PriceTableScreen() {
                     keyExtractor={item => item.id}
                     renderItem={({ item }) => renderItem(item)}
                 />
+
             </View>
 
             <Pressable

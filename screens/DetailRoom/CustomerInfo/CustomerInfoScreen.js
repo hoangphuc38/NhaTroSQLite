@@ -1,39 +1,59 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FlatList, View, Text } from "react-native";
 import styles from "./styles";
 import CustomerCard from "../../../components/CustomerCard";
 import { SearchBar } from '@rneui/themed/dist/SearchBar';
+import roomAPI from "../../../api/roomAPI";
 
-function CustomerInfoScreen() {
-    const userList = [
-        {
-            id: '1',
-            name: "Nguyễn Văn A",
-            dateBirth: "1990",
-            male: true,
-            noidangkyHoKhau: "Thông Bình - Tân Hồng - Đồng Tháp",
-            numberCard: "012345678",
-            job: "Công nhân",
-            numberRoom: "1",
-            ngayDi: null,
-            daChuyen: false,
-        },
-        {
-            id: '2',
-            name: "Nguyễn Văn A",
-            dateBirth: "1990",
-            male: true,
-            noidangkyHoKhau: "Hà Tĩnh",
-            numberCard: "012345678",
-            job: "Công nhân",
-            numberRoom: "1",
-            ngayDi: "10/10/2023",
-            daChuyen: true,
-        },
+function CustomerInfoScreen({ route }) {
+    // const userList = [
+    //     {
+    //         id: '1',
+    //         name: "Nguyễn Văn A",
+    //         dateBirth: "1990",
+    //         male: true,
+    //         noidangkyHoKhau: "Thông Bình - Tân Hồng - Đồng Tháp",
+    //         numberCard: "012345678",
+    //         job: "Công nhân",
+    //         numberRoom: "1",
+    //         ngayDi: null,
+    //         daChuyen: false,
+    //     },
+    //     {
+    //         id: '2',
+    //         name: "Nguyễn Văn A",
+    //         dateBirth: "1990",
+    //         male: true,
+    //         noidangkyHoKhau: "Hà Tĩnh",
+    //         numberCard: "012345678",
+    //         job: "Công nhân",
+    //         numberRoom: "1",
+    //         ngayDi: "10/10/2023",
+    //         daChuyen: true,
+    //     },
 
-    ]
+    // ]
+    const { room } = route.params;
+
+    useEffect(() => {
+        const fetchAPI = async () => {
+            try {
+                const response = await roomAPI.getDetailRoom(room);
+                console.log("so phong: ", room);
+                console.log("Success: ", response);
+                setUserList(response.danhSachNguoi);
+            }
+            catch (error) {
+                console.log("Xảy ra lỗi: ", error);
+            }
+        }
+
+        fetchAPI();
+
+    }, [route])
 
     const [searchValue, setSearchValue] = useState('');
+    const [userList, setUserList] = useState([]);
 
     return (
         <View style={styles.container}>
@@ -54,13 +74,13 @@ function CustomerInfoScreen() {
                     data={userList}
                     renderItem={
                         ({ item }) => <CustomerCard
-                            name={item.name}
-                            datebirth={item.dateBirth}
-                            male={item.male}
-                            noidangkyHoKhau={item.noidangkyHoKhau}
-                            numberCard={item.numberCard}
-                            job={item.job}
-                            numberRoom={item.numberRoom}
+                            name={item.hoTen}
+                            datebirth={item.namSinh}
+                            male={item.isNam}
+                            noidangkyHoKhau={item.noiDangKyHoKhau}
+                            numberCard={item.cccd}
+                            job={item.ngheNghiep}
+                            numberRoom={item.phongId}
                             daChuyen={item.daChuyen}
                             ngayDi={item.ngayDi}
                         />
