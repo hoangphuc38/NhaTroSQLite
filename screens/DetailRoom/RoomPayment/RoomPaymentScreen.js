@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Modal, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import styles from "./styles";
 import { Dropdown } from "react-native-element-dropdown";
 import { Button } from "@rneui/themed/dist/Button";
 import billAPI from "../../../api/billAPI";
+import pricetableAPI from "../../../api/pricatableAPI";
+import roomAPI from "../../../api/roomAPI";
 
 function RoomPayment({ route }) {
     const MONTH = [
@@ -35,64 +37,160 @@ function RoomPayment({ route }) {
     useEffect(() => {
         const fetchAPI = async () => {
             try {
+                const roomInfo = await roomAPI.getDetailRoom(room);
+                console.log("room: ", roomInfo);
+
+                if (roomInfo.loaiPhong === 1) {
+                    setRoomType(false);
+                }
+                else setRoomType(true);
+
+                const data = await pricetableAPI.getAll();
+
+                getPriceTableData(data);
+
                 let month = new Date();
                 let year = new Date();
-                const response = await billAPI.getHoaDonPhong(room, month.getMonth() + 1, year.getFullYear());
+                const response = await billAPI.getHoaDonPhong(room, month.getMonth(), year.getFullYear());
 
+                setElectricBillLastMonth(response.soDienThangTruoc.toString());
                 setElectricBillThisMonth(response.soDienThangNay.toString());
                 setSumElectricBill(response.tongSoDien.toString());
+                setLivingTime(response.soNgayO.toString());
+                setSumRoomBill(response.tongTienPhong.toString());
 
+                setWaterBillLastMonth(response.soNuocThangTruoc.toString());
                 setWaterBillThisMonth(response.soNuocThangNay.toString());
                 setSumWaterBill(response.tongSoNuoc.toString())
 
-                console.log("so phong: ", room);
-                console.log("Success: ", response);
-                setData(response);
+                setTotalBill(response.tongHoaDon.toString());
+
+
             }
             catch (error) {
                 console.log("Xảy ra lỗi: ", error);
-                setElectricBillThisMonth('');
-                setSumElectricBill('');
+                setElectricBillThisMonth('0');
+                setSumElectricBill('0');
 
-                setWaterBillThisMonth('');
-                setSumWaterBill('')
+                setWaterBillThisMonth('0');
+                setSumWaterBill('0');
+                setLivingTime('0');
+                setSumRoomBill('0');
+                setTotalBill('0');
             }
         }
 
         fetchAPI();
     }, [route])
 
-    const [data, setData] = useState([]);
     const [month, setMonth] = useState(null);
     const [isFocusMonth, setIsFocusMonth] = useState(false);
     const [year, setYear] = useState(null);
     const [isFocusYear, setIsFocusYear] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
 
-    const [electricBillThisMonth, setElectricBillThisMonth] = useState('');
-    const [sumElectricBill, setSumElectricBill] = useState('');
-    const [waterBillThisMonth, setWaterBillThisMonth] = useState('');
-    const [sumWaterBill, setSumWaterBill] = useState('');
+    const [roomType, setRoomType] = useState(false);
 
-    const handleElectricBillThisMonthChange = (value) => {
+    //Get data in priceTable
+    const [kiotPrice, setKiotPrice] = useState('0');
+    const [roomPrice, setRoomPrice] = useState('0');
+    const [waterPrice, setWaterPrice] = useState('0');
+    const [electricPrice, setElectricPrice] = useState('0');
+    const [rubbishPrice, setRubishPrice] = useState('0');
+
+    //Get data in bill
+    const [electricBillThisMonth, setElectricBillThisMonth] = useState('0');
+    const [sumElectricBill, setSumElectricBill] = useState('0');
+    const [electricTotal, setElectricTotal] = useState('0');
+
+    const [waterBillThisMonth, setWaterBillThisMonth] = useState('0');
+    const [sumWaterBill, setSumWaterBill] = useState('0');
+    const [waterTotal, setWaterTotal] = useState('0');
+
+    const [livingTime, setLivingTime] = useState('0');
+    const [sumRoomBill, setSumRoomBill] = useState('0');
+    const [roomTotal, setRoomTotal] = useState('0');
+
+    const [electricBillLastMonth, setElectricBillLastMonth] = useState('0');
+    const [waterBillLastMonth, setWaterBillLastMonth] = useState('0');
+
+    const [totalBill, setTotalBill] = useState('0');
+
+    const handleElectricBillThisMonthChange = (value, lastValue) => {
         setElectricBillThisMonth(value);
         const thisMonth = parseInt(value);
-        const lastMonth = parseInt('1238');
+        const lastMonth = parseInt(lastValue);
         const sum = thisMonth - lastMonth;
         setSumElectricBill(sum.toString());
     };
 
-    const handleWaterBillThisMonthChange = (value) => {
+    const handleWaterBillThisMonthChange = (value, lastValue) => {
         setWaterBillThisMonth(value);
         const thisMonth = parseInt(value);
-        const lastMonth = parseInt('1238');
+        const lastMonth = parseInt(lastValue);
         const sum = thisMonth - lastMonth;
         setSumWaterBill(sum.toString());
     };
 
+    const totalElectricUpdate = useMemo(() => {
+        if (parseInt(sumElectricBill) < 0 || (parseInt(sumElectricBill) * parseFloat(electricPrice)).toString() === 'NaN') {
+            return '0';
+        }
+        else {
+            const sum = (parseInt(sumElectricBill) * parseFloat(electricPrice)).toString()
+            setElectricTotal(sum);
+            return sum;
+        }
+    }, [sumElectricBill, electricPrice])
+
+    const totalWaterUpdate = useMemo(() => {
+        if (parseInt(sumWaterBill) < 0 || (parseInt(sumWaterBill) * parseFloat(waterPrice)).toString() === 'NaN') {
+            return '0';
+        }
+        else {
+            const sum = (parseInt(sumWaterBill) * parseFloat(waterPrice)).toString()
+            setWaterTotal(sum)
+            return sum;
+        }
+    }, [sumWaterBill, waterPrice])
+
+    const totalRoomUpdate = useMemo(() => {
+        if (parseInt(livingTime) < 0 || livingTime === '0' || livingTime === '') {
+            return '0';
+        }
+        if (roomType === false) {
+            const sum = (parseInt(parseFloat(roomPrice) / 30) * parseInt(livingTime)).toString();
+            setRoomTotal(sum)
+            return sum;
+        }
+        else {
+            const sum = (parseInt(parseFloat(kiotPrice) / 30) * parseInt(livingTime)).toString()
+            setRoomTotal(sum)
+            return sum;
+        }
+
+    }, [livingTime, roomPrice, kiotPrice])
+
+    const totalBillUpdate = useMemo(() => {
+        let electric = parseFloat(electricTotal);
+        let water = parseFloat(waterTotal);
+        let rubbish = parseFloat(rubbishPrice);
+        let room = parseFloat(roomTotal);
+        if (electric < 0 || water < 0 || room < 0) {
+            return '0';
+        }
+        else {
+            const totalBill = electric + water + rubbish + room;
+            setTotalBill(totalBill);
+            return totalBill.toString();
+        }
+
+    }, [electricTotal, waterTotal, rubbishPrice, roomTotal])
+
+
     const getThisMonth = () => {
         let month = new Date();
-        return 'Tháng ' + (month.getMonth() + 1).toString();
+        return 'Tháng ' + (month.getMonth()).toString();
     }
 
     const getThisYear = () => {
@@ -122,6 +220,15 @@ function RoomPayment({ route }) {
         return null;
     };
 
+    const getPriceTableData = (data) => {
+        for (let i = 0; i < data.length; i++) {
+            if (data[i].hangMuc === 'Kiot') setKiotPrice(data[i].gia.toString());
+            else if (data[i].hangMuc === 'Tro') setRoomPrice(data[i].gia.toString());
+            else if (data[i].hangMuc === 'Dien') setElectricPrice(data[i].gia.toString());
+            else if (data[i].hangMuc === 'Nuoc') setWaterPrice(data[i].gia.toString());
+            else setRubishPrice(data[i].gia.toString());
+        }
+    }
 
     return (
         <ScrollView style={styles.container}>
@@ -184,21 +291,21 @@ function RoomPayment({ route }) {
                         <Text style={styles.title}>Giá điện (nghìn đồng/kWh):</Text>
                         <TextInput style={styles.input}
                             inputMode="numeric"
-                            editable={false} value="3.5" />
+                            editable={false} value={electricPrice} />
                     </View>
 
                     <View style={styles.content}>
                         <Text style={styles.title}>Số điện tháng trước:</Text>
                         <TextInput style={styles.input}
                             inputMode="numeric"
-                            value="1238" />
+                            value={electricBillLastMonth} />
                     </View>
 
                     <View style={styles.content}>
                         <Text style={styles.title}>Số điện tháng này:</Text>
                         <TextInput style={styles.input}
                             inputMode="numeric"
-                            onChangeText={(e) => handleElectricBillThisMonthChange(e)}
+                            onChangeText={(e) => handleElectricBillThisMonthChange(e, electricBillLastMonth)}
                             value={electricBillThisMonth}
                         />
                     </View>
@@ -217,11 +324,7 @@ function RoomPayment({ route }) {
                         <TextInput style={styles.inputSum}
                             inputMode="numeric"
                             readOnly
-                            value={
-                                parseInt(sumElectricBill) < 0 || (parseInt(sumElectricBill) * 3.5).toString() === 'NaN'
-                                    ? '0'
-                                    : (parseInt(sumElectricBill) * 3.5).toString()
-                            }
+                            value={totalElectricUpdate}
                         />
                     </View>
                 </View>
@@ -233,21 +336,21 @@ function RoomPayment({ route }) {
                         <Text style={styles.title}>Giá nước (nghìn đồng/khối):</Text>
                         <TextInput style={styles.input}
                             inputMode="numeric"
-                            editable={false} value="12" />
+                            editable={false} value={waterPrice} />
                     </View>
 
                     <View style={styles.content}>
                         <Text style={styles.title}>Số nước tháng trước:</Text>
                         <TextInput style={styles.input}
                             inputMode="numeric"
-                            value="1238" />
+                            value={waterBillLastMonth} />
                     </View>
 
                     <View style={styles.content}>
                         <Text style={styles.title}>Số nước tháng này:</Text>
                         <TextInput style={styles.input}
                             inputMode="numeric"
-                            onChangeText={(e) => handleWaterBillThisMonthChange(e)}
+                            onChangeText={(e) => handleWaterBillThisMonthChange(e, waterBillLastMonth)}
                             value={waterBillThisMonth}
                         />
                     </View>
@@ -257,7 +360,10 @@ function RoomPayment({ route }) {
                         <TextInput style={styles.inputSum}
                             inputMode="numeric"
                             readOnly
-                            value={parseInt(sumWaterBill) < 0 || sumWaterBill === 'NaN' ? '0' : sumWaterBill}
+                            value={parseInt(sumWaterBill) < 0 || sumWaterBill === 'NaN'
+                                ? '0'
+                                : sumWaterBill
+                            }
                         />
                     </View>
 
@@ -266,11 +372,7 @@ function RoomPayment({ route }) {
                         <TextInput style={styles.inputSum}
                             inputMode="numeric"
                             readOnly
-                            value={
-                                parseInt(sumWaterBill) < 0 || (parseInt(sumWaterBill) * 12).toString() === 'NaN'
-                                    ? '0'
-                                    : (parseInt(sumWaterBill) * 12).toString()
-                            }
+                            value={totalWaterUpdate}
                         />
                     </View>
                 </View>
@@ -282,7 +384,7 @@ function RoomPayment({ route }) {
                         <Text style={styles.title}>Giá rác (nghìn đồng/tháng):</Text>
                         <TextInput style={styles.input}
                             inputMode="numeric"
-                            editable={false} value="12" />
+                            editable={false} value={rubbishPrice} />
                     </View>
 
                 </View>
@@ -294,7 +396,25 @@ function RoomPayment({ route }) {
                         <Text style={styles.title}>Giá phòng (nghìn đồng/tháng):</Text>
                         <TextInput style={styles.input}
                             inputMode="numeric"
-                            editable={false} value="12" />
+                            editable={false} value={roomPrice} />
+                    </View>
+
+                    <View style={styles.content}>
+                        <Text style={styles.title}>Số ngày ở (bình thường thì ghi 30):</Text>
+                        <TextInput style={styles.input}
+                            inputMode="numeric"
+                            onChangeText={(e) => setLivingTime(e)}
+                            value={livingTime}
+                        />
+                    </View>
+
+                    <View style={styles.content}>
+                        <Text style={styles.title}>Tổng tiền phòng (nghìn đồng):</Text>
+                        <TextInput style={styles.inputSum}
+                            inputMode="numeric"
+                            readOnly
+                            value={totalRoomUpdate}
+                        />
                     </View>
 
                 </View>
@@ -303,11 +423,12 @@ function RoomPayment({ route }) {
                     <Text style={styles.kindofContent}>Tổng cộng</Text>
 
                     <View style={styles.contentSum}>
-                        <Text style={styles.title}>Tiền phòng tháng này (nghìn đồng/tháng):</Text>
+                        <Text style={styles.title}>Tiền trọ tháng này:</Text>
 
                         <TextInput style={styles.inputFinal}
                             inputMode="numeric"
-                            editable={false} value="0" />
+                            readOnly
+                            value={totalBillUpdate} />
 
                     </View>
 

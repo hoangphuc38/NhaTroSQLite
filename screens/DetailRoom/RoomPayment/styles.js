@@ -30,13 +30,7 @@ export default styles = StyleSheet.create({
     },
 
     label: {
-        position: 'absolute',
-        backgroundColor: 'white',
-        left: 22,
-        top: -8,
-        zIndex: 999,
-        paddingHorizontal: 8,
-        fontSize: 14,
+        display: "none"
     },
 
     placeholderStyle: {
@@ -53,7 +47,7 @@ export default styles = StyleSheet.create({
     },
 
     contentWrapper: {
-        paddingHorizontal: 20,
+        paddingHorizontal: 10,
         gap: 10,
     },
 
