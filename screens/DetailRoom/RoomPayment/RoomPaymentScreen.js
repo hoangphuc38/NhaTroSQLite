@@ -51,7 +51,7 @@ function RoomPayment({ route }) {
 
                 let month = new Date();
                 let year = new Date();
-                const response = await billAPI.getHoaDonPhong(room, month.getMonth(), year.getFullYear());
+                const response = await billAPI.getHoaDonPhong(room, month.getMonth() + 1, year.getFullYear());
 
                 setElectricBillLastMonth(response.soDienThangTruoc.toString());
                 setElectricBillThisMonth(response.soDienThangNay.toString());
@@ -69,9 +69,11 @@ function RoomPayment({ route }) {
             }
             catch (error) {
                 console.log("Xảy ra lỗi: ", error);
+                setElectricBillLastMonth('1200');
                 setElectricBillThisMonth('0');
                 setSumElectricBill('0');
 
+                setWaterBillLastMonth('1000');
                 setWaterBillThisMonth('0');
                 setSumWaterBill('0');
                 setLivingTime('0');
@@ -88,6 +90,7 @@ function RoomPayment({ route }) {
     const [year, setYear] = useState(null);
     const [isFocusYear, setIsFocusYear] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
+    const [alertVisible, setAlertVisible] = useState(false);
 
     const [roomType, setRoomType] = useState(false);
 
@@ -109,12 +112,12 @@ function RoomPayment({ route }) {
 
     const [livingTime, setLivingTime] = useState('0');
     const [sumRoomBill, setSumRoomBill] = useState('0');
-    const [roomTotal, setRoomTotal] = useState('0');
 
     const [electricBillLastMonth, setElectricBillLastMonth] = useState('0');
     const [waterBillLastMonth, setWaterBillLastMonth] = useState('0');
 
     const [totalBill, setTotalBill] = useState('0');
+    const [note, setNote] = useState('');
 
     const handleElectricBillThisMonthChange = (value, lastValue) => {
         setElectricBillThisMonth(value);
@@ -160,12 +163,12 @@ function RoomPayment({ route }) {
         }
         if (roomType === false) {
             const sum = (parseInt(parseFloat(roomPrice) / 30) * parseInt(livingTime)).toString();
-            setRoomTotal(sum)
+            setSumRoomBill(sum)
             return sum;
         }
         else {
             const sum = (parseInt(parseFloat(kiotPrice) / 30) * parseInt(livingTime)).toString()
-            setRoomTotal(sum)
+            setSumRoomBill(sum)
             return sum;
         }
 
@@ -175,7 +178,7 @@ function RoomPayment({ route }) {
         let electric = parseFloat(electricTotal);
         let water = parseFloat(waterTotal);
         let rubbish = parseFloat(rubbishPrice);
-        let room = parseFloat(roomTotal);
+        let room = parseFloat(sumRoomBill);
         if (electric < 0 || water < 0 || room < 0) {
             return '0';
         }
@@ -185,7 +188,7 @@ function RoomPayment({ route }) {
             return totalBill.toString();
         }
 
-    }, [electricTotal, waterTotal, rubbishPrice, roomTotal])
+    }, [electricTotal, waterTotal, rubbishPrice, sumRoomBill])
 
 
     const getThisMonth = () => {
@@ -219,6 +222,34 @@ function RoomPayment({ route }) {
         }
         return null;
     };
+
+    const handleCreateBill = async () => {
+        let today = new Date();
+
+        return await billAPI.createHoaDonPhong(
+            today.toJSON(),
+            parseInt(electricBillLastMonth),
+            parseInt(electricBillThisMonth),
+            parseInt(sumElectricBill),
+            parseFloat(electricTotal),
+            parseInt(waterBillLastMonth),
+            parseInt(waterBillThisMonth),
+            parseInt(sumWaterBill),
+            parseFloat(waterTotal),
+            parseInt(livingTime),
+            parseFloat(sumRoomBill),
+            parseFloat(totalBill),
+            note,
+            room
+        )
+            .then(() => {
+                setAlertVisible(true);
+            })
+            .catch((error) => {
+                console.log(error);
+                alert("Thêm hóa đơn thất bại");
+            });
+    }
 
     const getPriceTableData = (data) => {
         for (let i = 0; i < data.length; i++) {
@@ -434,6 +465,18 @@ function RoomPayment({ route }) {
 
                 </View>
 
+                <View style={styles.electricContent}>
+                    <Text style={styles.kindofContent}>Ghi chú</Text>
+
+                    <View style={styles.contentSum}>
+                        <TextInput style={styles.inputNote}
+                            onChangeText={(e) => setNote(e)}
+                            value={note} />
+
+                    </View>
+
+                </View>
+
             </View>
 
             <View style={styles.buttons}>
@@ -462,8 +505,43 @@ function RoomPayment({ route }) {
                     containerStyle={{
                         width: "auto",
                         marginBottom: 15,
-                    }} />
+                    }}
+                    onPress={handleCreateBill} />
             </View>
+
+            <Modal
+                animationType="fade"
+                transparent={true}
+                visible={alertVisible}
+                onRequestClose={() => setAlertVisible(!alertVisible)}
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.modal}>
+                        <View style={styles.modalContent}>
+                            <View style={styles.electricContent}>
+                                <View style={styles.content}>
+                                    <Text style={styles.title}>Thêm hóa đơn thành công</Text>
+                                </View>
+                            </View>
+
+                            <View style={styles.buttonModal}>
+                                <Pressable
+                                    style={[styles.button, styles.buttonClose]}
+                                    onPress={() => setAlertVisible(!alertVisible)}>
+                                    <Text style={styles.textBtn}>Thoát</Text>
+                                </Pressable>
+
+                                <Pressable
+                                    style={[styles.button, styles.buttonSave]}
+                                    onPress={() => setAlertVisible(!alertVisible)}>
+                                    <Text style={styles.textBtn}>OK</Text>
+                                </Pressable>
+                            </View>
+
+                        </View>
+                    </View>
+                </View>
+            </Modal>
 
             <Modal
                 animationType="fade"

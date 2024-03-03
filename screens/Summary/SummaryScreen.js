@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, Text, View, FlatList, TextInput } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
+import summaryAPI from "../../api/summaryAPI";
 
 function SummaryScreen() {
     const MONTH = [
@@ -44,8 +45,27 @@ function SummaryScreen() {
     const [isFocusMonth, setIsFocusMonth] = useState(false);
     const [year, setYear] = useState(null);
     const [isFocusYear, setIsFocusYear] = useState(false);
-    const [data, setData] = useState(dataTable);
+    const [data, setData] = useState([]);
     const [arrayNote, setArrayNote] = useState([]);
+
+    useEffect(() => {
+        const fetchAPI = async () => {
+            try {
+                let month = new Date();
+                let year = new Date();
+                const response = await summaryAPI.getSummary(month.getMonth() + 1, year.getFullYear());
+                console.log("Success: ", response);
+                setData(response.danhSachHoaDon);
+
+            }
+            catch (error) {
+                console.log("Xảy ra lỗi: ", error);
+                setLoading(false);
+            }
+        }
+
+        fetchAPI();
+    }, [])
 
     const getThisMonth = () => {
         let month = new Date();
@@ -82,15 +102,15 @@ function SummaryScreen() {
     const renderItem = (item, index) => {
         return (
             <View style={styles.row}>
-                <Text style={styles.cellRoom}>{item.room}</Text>
-                <Text style={styles.cellContent}>{item.content}</Text>
-                <TextInput style={styles.cellNote}
+                <Text style={styles.cellRoom}>{item.phong.tenPhong}</Text>
+                <Text style={styles.cellContent}>{item.tongHoaDon}</Text>
+                <TextInput style={styles.ghiChu}
                     onChangeText={(text) => {
-                        let arrayNote = [...dataTable];
-                        arrayNote[index].note = text;
+                        let arrayNote = [...data];
+                        arrayNote[index].ghiChu = text;
                         setData(arrayNote);
                     }}
-                    value={item.note}>
+                    value={item.ghiChu}>
                 </TextInput>
             </View>
         )

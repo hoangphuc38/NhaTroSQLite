@@ -104,6 +104,17 @@ export default styles = StyleSheet.create({
         alignSelf: "center"
     },
 
+    inputNote: {
+        backgroundColor: "white",
+        borderRadius: 10,
+        width: "100%",
+        paddingHorizontal: 10,
+        paddingVertical: 2,
+        fontSize: 14,
+        color: "red",
+        alignSelf: "center"
+    },
+
     electricContent: {
         gap: 10,
     },
