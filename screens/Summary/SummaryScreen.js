@@ -2,8 +2,11 @@ import React, { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, Text, View, FlatList, TextInput } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
 import summaryAPI from "../../api/summaryAPI";
+import { useNavigation } from "@react-navigation/native";
 
 function SummaryScreen() {
+    const navigation = useNavigation();
+
     const MONTH = [
         { label: 'Tháng 1', value: '1' },
         { label: 'Tháng 2', value: '2' },
@@ -46,7 +49,9 @@ function SummaryScreen() {
     const [year, setYear] = useState(null);
     const [isFocusYear, setIsFocusYear] = useState(false);
     const [data, setData] = useState([]);
-    const [arrayNote, setArrayNote] = useState([]);
+    const [electricTotal, setElectricTotal] = useState('');
+    const [waterTotal, setWaterTotal] = useState('');
+    const [total, setTotal] = useState('');
 
     useEffect(() => {
         const fetchAPI = async () => {
@@ -56,16 +61,22 @@ function SummaryScreen() {
                 const response = await summaryAPI.getSummary(month.getMonth() + 1, year.getFullYear());
                 console.log("Success: ", response);
                 setData(response.danhSachHoaDon);
+                setElectricTotal(response.tongDien.toString());
+                setWaterTotal(response.tongNuoc.toString());
+                setTotal(response.tongTienTongKet.toString());
 
             }
             catch (error) {
                 console.log("Xảy ra lỗi: ", error);
-                setLoading(false);
             }
         }
 
+        const unsubscribe = navigation.addListener('focus', fetchAPI);
+
         fetchAPI();
-    }, [])
+
+        return unsubscribe;
+    }, [navigation])
 
     const getThisMonth = () => {
         let month = new Date();
@@ -104,12 +115,7 @@ function SummaryScreen() {
             <View style={styles.row}>
                 <Text style={styles.cellRoom}>{item.phong.tenPhong}</Text>
                 <Text style={styles.cellContent}>{item.tongHoaDon}</Text>
-                <TextInput style={styles.ghiChu}
-                    onChangeText={(text) => {
-                        let arrayNote = [...data];
-                        arrayNote[index].ghiChu = text;
-                        setData(arrayNote);
-                    }}
+                <TextInput style={styles.cellNote}
                     value={item.ghiChu}>
                 </TextInput>
             </View>
@@ -179,11 +185,40 @@ function SummaryScreen() {
                     <Text style={styles.headingNote}>Ghi chú</Text>
                 </View>
 
-                <FlatList
-                    data={data}
-                    keyExtractor={item => item.id}
-                    renderItem={({ item, index }) => renderItem(item, index)}
-                />
+                <View style={styles.list}>
+                    <FlatList
+                        data={data}
+                        keyExtractor={item => item.id}
+                        renderItem={({ item, index }) => renderItem(item, index)}
+                    />
+                </View>
+
+                <View style={styles.content}>
+                    <Text style={styles.title}>Tổng số điện:</Text>
+                    <TextInput style={styles.inputSum}
+                        inputMode="numeric"
+                        readOnly
+                        value={electricTotal + '   nghìn đồng'}
+                    />
+                </View>
+
+                <View style={styles.content}>
+                    <Text style={styles.title}>Tổng số nước:</Text>
+                    <TextInput style={styles.inputSum}
+                        inputMode="numeric"
+                        readOnly
+                        value={waterTotal + '   nghìn đồng'}
+                    />
+                </View>
+
+                <View style={styles.content}>
+                    <Text style={styles.title}>Tổng cộng:</Text>
+                    <TextInput style={styles.inputSum}
+                        inputMode="numeric"
+                        readOnly
+                        value={total + '   nghìn đồng'}
+                    />
+                </View>
             </View>
         </View>
     );
@@ -202,7 +237,6 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         gap: 5,
         justifyContent: "flex-end",
-        marginBottom: 15,
     },
 
     dropdown: {
@@ -244,7 +278,7 @@ const styles = StyleSheet.create({
     tableWrapper: {
         flex: 1,
         marginBottom: 10,
-        paddingVertical: 20,
+        paddingVertical: 10,
         paddingHorizontal: 5,
     },
 
@@ -254,7 +288,7 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         borderRadius: 5,
         elevation: 2,
-        marginBottom: 15,
+        marginBottom: 5
     },
 
     headerTopBarText: {
@@ -293,7 +327,7 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
         marginVertical: 8,
         marginHorizontal: 2,
-        elevation: 1,
+        elevation: 2,
         borderRadius: 3,
         borderColor: '#fff',
         padding: 10,
@@ -319,6 +353,33 @@ const styles = StyleSheet.create({
         flex: 3,
         borderBottomWidth: 1,
         borderBottomColor: "gray"
+    },
+
+    list: {
+        marginBottom: 10,
+        height: 300
+    },
+
+    content: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        marginBottom: 7,
+    },
+
+    title: {
+        fontWeight: "bold",
+        fontSize: 14,
+    },
+
+    inputSum: {
+        backgroundColor: "white",
+        borderRadius: 10,
+        width: 220,
+        paddingHorizontal: 10,
+        paddingVertical: 2,
+        color: "red",
+        fontSize: 14,
     },
 })
 

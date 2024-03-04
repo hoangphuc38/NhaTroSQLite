@@ -48,6 +48,7 @@ function RoomPayment({ route }) {
                 const data = await pricetableAPI.getAll();
 
                 getPriceTableData(data);
+                console.log('bang gia: ', data);
 
                 let month = new Date();
                 let year = new Date();
@@ -64,6 +65,7 @@ function RoomPayment({ route }) {
                 setSumWaterBill(response.tongSoNuoc.toString())
 
                 setTotalBill(response.tongHoaDon.toString());
+                setNote(response.ghiChu)
 
 
             }
@@ -253,10 +255,10 @@ function RoomPayment({ route }) {
 
     const getPriceTableData = (data) => {
         for (let i = 0; i < data.length; i++) {
-            if (data[i].hangMuc === 'Kiot') setKiotPrice(data[i].gia.toString());
-            else if (data[i].hangMuc === 'Tro') setRoomPrice(data[i].gia.toString());
-            else if (data[i].hangMuc === 'Dien') setElectricPrice(data[i].gia.toString());
-            else if (data[i].hangMuc === 'Nuoc') setWaterPrice(data[i].gia.toString());
+            if (data[i].id === 1) setKiotPrice(data[i].gia.toString());
+            else if (data[i].id === 2) setRoomPrice(data[i].gia.toString());
+            else if (data[i].id === 3) setElectricPrice(data[i].gia.toString());
+            else if (data[i].id === 4) setWaterPrice(data[i].gia.toString());
             else setRubishPrice(data[i].gia.toString());
         }
     }
@@ -329,6 +331,7 @@ function RoomPayment({ route }) {
                         <Text style={styles.title}>Số điện tháng trước:</Text>
                         <TextInput style={styles.input}
                             inputMode="numeric"
+                            onChangeText={(e) => setElectricBillLastMonth(e)}
                             value={electricBillLastMonth} />
                     </View>
 
@@ -374,6 +377,7 @@ function RoomPayment({ route }) {
                         <Text style={styles.title}>Số nước tháng trước:</Text>
                         <TextInput style={styles.input}
                             inputMode="numeric"
+                            onChangeText={(e) => setWaterBillLastMonth(e)}
                             value={waterBillLastMonth} />
                     </View>
 

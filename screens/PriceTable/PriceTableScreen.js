@@ -38,32 +38,13 @@ function PriceTableScreen() {
     const [rubbishPrice, setRubbishPrice] = useState('');
 
     const renderItem = (item) => {
-        switch (item.hangMuc) {
-            case 'Dien':
-                return (
-                    <View style={styles.row}>
-                        <Text style={styles.cell}>Điện</Text>
-                        <Text style={styles.cell}>{item.gia}</Text>
-                        <Text style={styles.cell}>nghìn đồng/kWh</Text>
-                    </View>
-                )
-            case 'Nuoc':
-                return (
-                    <View style={styles.row}>
-                        <Text style={styles.cell}>Nước</Text>
-                        <Text style={styles.cell}>{item.gia}</Text>
-                        <Text style={styles.cell}>nghìn đồng/khối</Text>
-                    </View>
-                )
-            default:
-                return (
-                    <View style={styles.row}>
-                        <Text style={styles.cell}>{item.hangMuc}</Text>
-                        <Text style={styles.cell}>{item.gia}</Text>
-                        <Text style={styles.cell}>nghìn đồng/tháng</Text>
-                    </View>
-                )
-        }
+        return (
+            <View style={styles.row}>
+                <Text style={styles.cell}>{item.hangMuc}</Text>
+                <Text style={styles.cell}>{item.gia}</Text>
+                <Text style={styles.cell}>{item.donVi}</Text>
+            </View>
+        )
     }
 
     return (
