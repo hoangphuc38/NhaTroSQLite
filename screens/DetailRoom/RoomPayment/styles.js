@@ -119,6 +119,18 @@ export default styles = StyleSheet.create({
         gap: 10,
     },
 
+    contentAlert: {
+        justifyContent: "flex-start",
+        flexDirection: "column",
+        gap: 10,
+        marginLeft: 10
+    },
+
+    titleAlert: {
+        fontSize: 15,
+        fontWeight: "bold"
+    },
+
     kindofContent: {
         flexDirection: "row",
         alignSelf: "flex-start",
@@ -145,7 +157,24 @@ export default styles = StyleSheet.create({
         backgroundColor: 'white',
         borderRadius: 20,
         paddingHorizontal: 10,
-        paddingVertical: 5,
+        paddingVertical: 10,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5,
+    },
+
+    notification: {
+        width: "95%",
+        backgroundColor: 'white',
+        borderRadius: 20,
+        paddingHorizontal: 10,
+        paddingVertical: 10,
         alignItems: 'center',
         shadowColor: '#000',
         shadowOffset: {
@@ -172,6 +201,42 @@ export default styles = StyleSheet.create({
         borderWidth: 1
     },
 
+    contentDate: {
+        flexDirection: "row",
+        justifyContent: "flex-end"
+    },
+
+    contentHeader: {
+        flexDirection: "row",
+        justifyContent: "center"
+    },
+
+    titleHeader: {
+        fontSize: 16,
+        color: "blue",
+        fontWeight: "bold"
+    },
+
+    form: {
+        flexDirection: "row",
+        gap: 40,
+        marginLeft: 10
+    },
+
+    titleBill: {
+        flexDirection: "column",
+        gap: 10,
+    },
+
+    contentBill: {
+        fontWeight: "bold"
+    },
+
+    contentBillSum: {
+        fontWeight: "bold",
+        color: "red"
+    },
+
     buttonModal: {
         flexDirection: "row",
         marginTop: 15,
@@ -180,7 +245,7 @@ export default styles = StyleSheet.create({
 
     button: {
         borderRadius: 10,
-        padding: 5,
+        padding: 8,
         elevation: 2,
         width: "40%",
     },
@@ -197,5 +262,6 @@ export default styles = StyleSheet.create({
         color: 'white',
         fontWeight: 'bold',
         textAlign: 'center',
+        fontSize: 15
     },
 })

@@ -1,8 +1,9 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { Modal, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import styles from "./styles";
 import { Dropdown } from "react-native-element-dropdown";
 import { Button } from "@rneui/themed/dist/Button";
+import ViewShot, { captureScreen } from "react-native-view-shot";
 import billAPI from "../../../api/billAPI";
 import pricetableAPI from "../../../api/pricatableAPI";
 import roomAPI from "../../../api/roomAPI";
@@ -32,27 +33,38 @@ function RoomPayment({ route }) {
         { label: '2029', value: '2029' },
     ];
 
-    const { room } = route.params;
+    const { room, roomId } = route.params;
+    const viewShotRef = useRef();
 
     useEffect(() => {
-        const fetchAPI = async () => {
+        const fetchRoomAPI = async () => {
             try {
-                const roomInfo = await roomAPI.getDetailRoom(room);
-                console.log("room: ", roomInfo);
+                const roomInfo = await roomAPI.getDetailRoom(roomId);
 
                 if (roomInfo.loaiPhong === 1) {
                     setRoomType(false);
                 }
                 else setRoomType(true);
-
+            }
+            catch (error) {
+                console.log("Xảy ra lỗi: ", error);
+            }
+        }
+        const fetchTableAPI = async () => {
+            try {
                 const data = await pricetableAPI.getAll();
 
                 getPriceTableData(data);
-                console.log('bang gia: ', data);
-
+            }
+            catch (error) {
+                console.log("Xảy ra lỗi: ", error);
+            }
+        }
+        const fetchBillAPI = async () => {
+            try {
                 let month = new Date();
                 let year = new Date();
-                const response = await billAPI.getHoaDonPhong(room, month.getMonth() + 1, year.getFullYear());
+                const response = await billAPI.getHoaDonPhong(roomId, month.getMonth() + 1, year.getFullYear());
 
                 setElectricBillLastMonth(response.soDienThangTruoc.toString());
                 setElectricBillThisMonth(response.soDienThangNay.toString());
@@ -65,26 +77,29 @@ function RoomPayment({ route }) {
                 setSumWaterBill(response.tongSoNuoc.toString())
 
                 setTotalBill(response.tongHoaDon.toString());
-                setNote(response.ghiChu)
+                setNote(response.ghiChu);
 
-
+                setLoading(false);
             }
             catch (error) {
                 console.log("Xảy ra lỗi: ", error);
-                setElectricBillLastMonth('1200');
-                setElectricBillThisMonth('0');
-                setSumElectricBill('0');
+                setElectricBillLastMonth('');
+                setElectricBillThisMonth('');
+                setSumElectricBill('');
 
-                setWaterBillLastMonth('1000');
-                setWaterBillThisMonth('0');
-                setSumWaterBill('0');
-                setLivingTime('0');
-                setSumRoomBill('0');
-                setTotalBill('0');
+                setWaterBillLastMonth('');
+                setWaterBillThisMonth('');
+                setSumWaterBill('');
+                setLivingTime('');
+                setSumRoomBill('');
+                setTotalBill('');
+                setLoading(false);
             }
         }
 
-        fetchAPI();
+        fetchRoomAPI();
+        fetchTableAPI();
+        fetchBillAPI();
     }, [route])
 
     const [month, setMonth] = useState(null);
@@ -93,6 +108,9 @@ function RoomPayment({ route }) {
     const [isFocusYear, setIsFocusYear] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
     const [alertVisible, setAlertVisible] = useState(false);
+    const [billPresentation, setBillPresentation] = useState(true);
+    const [loading, setLoading] = useState(true);
+    const [uri, setUri] = useState('');
 
     const [roomType, setRoomType] = useState(false);
 
@@ -164,12 +182,12 @@ function RoomPayment({ route }) {
             return '0';
         }
         if (roomType === false) {
-            const sum = (parseInt(parseFloat(roomPrice) / 30) * parseInt(livingTime)).toString();
+            const sum = (parseInt(parseFloat(roomPrice) / 30 * parseInt(livingTime))).toString();
             setSumRoomBill(sum)
             return sum;
         }
         else {
-            const sum = (parseInt(parseFloat(kiotPrice) / 30) * parseInt(livingTime)).toString()
+            const sum = (parseInt(parseFloat(kiotPrice) / 30 * parseInt(livingTime))).toString();
             setSumRoomBill(sum)
             return sum;
         }
@@ -242,7 +260,7 @@ function RoomPayment({ route }) {
             parseFloat(sumRoomBill),
             parseFloat(totalBill),
             note,
-            room
+            roomId
         )
             .then(() => {
                 setAlertVisible(true);
@@ -261,6 +279,18 @@ function RoomPayment({ route }) {
             else if (data[i].id === 4) setWaterPrice(data[i].gia.toString());
             else setRubishPrice(data[i].gia.toString());
         }
+    }
+
+    const CaptureViewShot = async () => {
+        const imageURI = await viewShotRef.current.capture();
+        console.log("Chụp thành công: ", imageURI);
+        setUri(imageURI);
+
+        if (!uri) return;
+
+        const albumName = 'Screenshot';
+        const path = await RNFS.copyFile(uri, `${RNFS.DocumentDirectoryPath}/${albumName}/${Date.now()}.jpg`);
+        await CameraRoll.saveToCameraRoll(path, { album: albumName });
     }
 
     return (
@@ -314,174 +344,179 @@ function RoomPayment({ route }) {
 
             </View>
 
-            <View style={styles.contentWrapper}>
-                <Text style={styles.roomNumber}>Phòng {room}</Text>
+            {
+                loading ? <Text>Đang tải ...</Text>
+                    :
+                    <View style={styles.contentWrapper}>
+                        <Text style={styles.roomNumber}>Phòng {room}</Text>
 
-                <View style={styles.electricContent}>
-                    <Text style={styles.kindofContent}>1. Điện</Text>
+                        <View style={styles.electricContent}>
+                            <Text style={styles.kindofContent}>1. Điện</Text>
 
-                    <View style={styles.content}>
-                        <Text style={styles.title}>Giá điện (nghìn đồng/kWh):</Text>
-                        <TextInput style={styles.input}
-                            inputMode="numeric"
-                            editable={false} value={electricPrice} />
+                            <View style={styles.content}>
+                                <Text style={styles.title}>Giá điện (nghìn đồng/kWh):</Text>
+                                <TextInput style={styles.input}
+                                    inputMode="numeric"
+                                    editable={false} value={electricPrice} />
+                            </View>
+
+                            <View style={styles.content}>
+                                <Text style={styles.title}>Số điện tháng trước:</Text>
+                                <TextInput style={styles.input}
+                                    inputMode="numeric"
+                                    onChangeText={(e) => setElectricBillLastMonth(e)}
+                                    value={electricBillLastMonth} />
+                            </View>
+
+                            <View style={styles.content}>
+                                <Text style={styles.title}>Số điện tháng này:</Text>
+                                <TextInput style={styles.input}
+                                    inputMode="numeric"
+                                    onChangeText={(e) => handleElectricBillThisMonthChange(e, electricBillLastMonth)}
+                                    value={electricBillThisMonth}
+                                />
+                            </View>
+
+                            <View style={styles.content}>
+                                <Text style={styles.title}>Tổng số điện:</Text>
+                                <TextInput style={styles.inputSum}
+                                    inputMode="numeric"
+                                    readOnly
+                                    value={parseInt(sumElectricBill) < 0 || sumElectricBill === 'NaN' ? '0' : sumElectricBill}
+                                />
+                            </View>
+
+                            <View style={styles.content}>
+                                <Text style={styles.title}>Tổng tiền điện (nghìn đồng):</Text>
+                                <TextInput style={styles.inputSum}
+                                    inputMode="numeric"
+                                    readOnly
+                                    value={totalElectricUpdate}
+                                />
+                            </View>
+                        </View>
+
+                        <View style={styles.electricContent}>
+                            <Text style={styles.kindofContent}>2. Nước</Text>
+
+                            <View style={styles.content}>
+                                <Text style={styles.title}>Giá nước (nghìn đồng/khối):</Text>
+                                <TextInput style={styles.input}
+                                    inputMode="numeric"
+                                    editable={false} value={waterPrice} />
+                            </View>
+
+                            <View style={styles.content}>
+                                <Text style={styles.title}>Số nước tháng trước:</Text>
+                                <TextInput style={styles.input}
+                                    inputMode="numeric"
+                                    onChangeText={(e) => setWaterBillLastMonth(e)}
+                                    value={waterBillLastMonth} />
+                            </View>
+
+                            <View style={styles.content}>
+                                <Text style={styles.title}>Số nước tháng này:</Text>
+                                <TextInput style={styles.input}
+                                    inputMode="numeric"
+                                    onChangeText={(e) => handleWaterBillThisMonthChange(e, waterBillLastMonth)}
+                                    value={waterBillThisMonth}
+                                />
+                            </View>
+
+                            <View style={styles.content}>
+                                <Text style={styles.title}>Tổng số nước:</Text>
+                                <TextInput style={styles.inputSum}
+                                    inputMode="numeric"
+                                    readOnly
+                                    value={parseInt(sumWaterBill) < 0 || sumWaterBill === 'NaN'
+                                        ? '0'
+                                        : sumWaterBill
+                                    }
+                                />
+                            </View>
+
+                            <View style={styles.content}>
+                                <Text style={styles.title}>Tổng tiền nước (nghìn đồng):</Text>
+                                <TextInput style={styles.inputSum}
+                                    inputMode="numeric"
+                                    readOnly
+                                    value={totalWaterUpdate}
+                                />
+                            </View>
+                        </View>
+
+                        <View style={styles.electricContent}>
+                            <Text style={styles.kindofContent}>3. Rác</Text>
+
+                            <View style={styles.content}>
+                                <Text style={styles.title}>Giá rác (nghìn đồng/tháng):</Text>
+                                <TextInput style={styles.input}
+                                    inputMode="numeric"
+                                    editable={false} value={rubbishPrice} />
+                            </View>
+
+                        </View>
+
+                        <View style={styles.electricContent}>
+                            <Text style={styles.kindofContent}>4. Phòng</Text>
+
+                            <View style={styles.content}>
+                                <Text style={styles.title}>Giá phòng (nghìn đồng/tháng):</Text>
+                                <TextInput style={styles.input}
+                                    inputMode="numeric"
+                                    editable={false}
+                                    value={roomType ? kiotPrice : roomPrice} />
+                            </View>
+
+                            <View style={styles.content}>
+                                <Text style={styles.title}>Số ngày ở (bình thường thì ghi 30):</Text>
+                                <TextInput style={styles.input}
+                                    inputMode="numeric"
+                                    onChangeText={(e) => setLivingTime(e)}
+                                    value={livingTime}
+                                />
+                            </View>
+
+                            <View style={styles.content}>
+                                <Text style={styles.title}>Tổng tiền phòng (nghìn đồng):</Text>
+                                <TextInput style={styles.inputSum}
+                                    inputMode="numeric"
+                                    readOnly
+                                    value={totalRoomUpdate}
+                                />
+                            </View>
+
+                        </View>
+
+                        <View style={styles.electricContent}>
+                            <Text style={styles.kindofContent}>Tổng cộng</Text>
+
+                            <View style={styles.contentSum}>
+                                <Text style={styles.title}>Tiền trọ tháng này:</Text>
+
+                                <TextInput style={styles.inputFinal}
+                                    inputMode="numeric"
+                                    readOnly
+                                    value={totalBillUpdate} />
+
+                            </View>
+
+                        </View>
+
+                        <View style={styles.electricContent}>
+                            <Text style={styles.kindofContent}>Ghi chú</Text>
+
+                            <View style={styles.contentSum}>
+                                <TextInput style={styles.inputNote}
+                                    onChangeText={(e) => setNote(e)}
+                                    value={note} />
+
+                            </View>
+
+                        </View>
+
                     </View>
-
-                    <View style={styles.content}>
-                        <Text style={styles.title}>Số điện tháng trước:</Text>
-                        <TextInput style={styles.input}
-                            inputMode="numeric"
-                            onChangeText={(e) => setElectricBillLastMonth(e)}
-                            value={electricBillLastMonth} />
-                    </View>
-
-                    <View style={styles.content}>
-                        <Text style={styles.title}>Số điện tháng này:</Text>
-                        <TextInput style={styles.input}
-                            inputMode="numeric"
-                            onChangeText={(e) => handleElectricBillThisMonthChange(e, electricBillLastMonth)}
-                            value={electricBillThisMonth}
-                        />
-                    </View>
-
-                    <View style={styles.content}>
-                        <Text style={styles.title}>Tổng số điện:</Text>
-                        <TextInput style={styles.inputSum}
-                            inputMode="numeric"
-                            readOnly
-                            value={parseInt(sumElectricBill) < 0 || sumElectricBill === 'NaN' ? '0' : sumElectricBill}
-                        />
-                    </View>
-
-                    <View style={styles.content}>
-                        <Text style={styles.title}>Tổng tiền điện (nghìn đồng):</Text>
-                        <TextInput style={styles.inputSum}
-                            inputMode="numeric"
-                            readOnly
-                            value={totalElectricUpdate}
-                        />
-                    </View>
-                </View>
-
-                <View style={styles.electricContent}>
-                    <Text style={styles.kindofContent}>2. Nước</Text>
-
-                    <View style={styles.content}>
-                        <Text style={styles.title}>Giá nước (nghìn đồng/khối):</Text>
-                        <TextInput style={styles.input}
-                            inputMode="numeric"
-                            editable={false} value={waterPrice} />
-                    </View>
-
-                    <View style={styles.content}>
-                        <Text style={styles.title}>Số nước tháng trước:</Text>
-                        <TextInput style={styles.input}
-                            inputMode="numeric"
-                            onChangeText={(e) => setWaterBillLastMonth(e)}
-                            value={waterBillLastMonth} />
-                    </View>
-
-                    <View style={styles.content}>
-                        <Text style={styles.title}>Số nước tháng này:</Text>
-                        <TextInput style={styles.input}
-                            inputMode="numeric"
-                            onChangeText={(e) => handleWaterBillThisMonthChange(e, waterBillLastMonth)}
-                            value={waterBillThisMonth}
-                        />
-                    </View>
-
-                    <View style={styles.content}>
-                        <Text style={styles.title}>Tổng số nước:</Text>
-                        <TextInput style={styles.inputSum}
-                            inputMode="numeric"
-                            readOnly
-                            value={parseInt(sumWaterBill) < 0 || sumWaterBill === 'NaN'
-                                ? '0'
-                                : sumWaterBill
-                            }
-                        />
-                    </View>
-
-                    <View style={styles.content}>
-                        <Text style={styles.title}>Tổng tiền nước (nghìn đồng):</Text>
-                        <TextInput style={styles.inputSum}
-                            inputMode="numeric"
-                            readOnly
-                            value={totalWaterUpdate}
-                        />
-                    </View>
-                </View>
-
-                <View style={styles.electricContent}>
-                    <Text style={styles.kindofContent}>3. Rác</Text>
-
-                    <View style={styles.content}>
-                        <Text style={styles.title}>Giá rác (nghìn đồng/tháng):</Text>
-                        <TextInput style={styles.input}
-                            inputMode="numeric"
-                            editable={false} value={rubbishPrice} />
-                    </View>
-
-                </View>
-
-                <View style={styles.electricContent}>
-                    <Text style={styles.kindofContent}>4. Phòng</Text>
-
-                    <View style={styles.content}>
-                        <Text style={styles.title}>Giá phòng (nghìn đồng/tháng):</Text>
-                        <TextInput style={styles.input}
-                            inputMode="numeric"
-                            editable={false} value={roomPrice} />
-                    </View>
-
-                    <View style={styles.content}>
-                        <Text style={styles.title}>Số ngày ở (bình thường thì ghi 30):</Text>
-                        <TextInput style={styles.input}
-                            inputMode="numeric"
-                            onChangeText={(e) => setLivingTime(e)}
-                            value={livingTime}
-                        />
-                    </View>
-
-                    <View style={styles.content}>
-                        <Text style={styles.title}>Tổng tiền phòng (nghìn đồng):</Text>
-                        <TextInput style={styles.inputSum}
-                            inputMode="numeric"
-                            readOnly
-                            value={totalRoomUpdate}
-                        />
-                    </View>
-
-                </View>
-
-                <View style={styles.electricContent}>
-                    <Text style={styles.kindofContent}>Tổng cộng</Text>
-
-                    <View style={styles.contentSum}>
-                        <Text style={styles.title}>Tiền trọ tháng này:</Text>
-
-                        <TextInput style={styles.inputFinal}
-                            inputMode="numeric"
-                            readOnly
-                            value={totalBillUpdate} />
-
-                    </View>
-
-                </View>
-
-                <View style={styles.electricContent}>
-                    <Text style={styles.kindofContent}>Ghi chú</Text>
-
-                    <View style={styles.contentSum}>
-                        <TextInput style={styles.inputNote}
-                            onChangeText={(e) => setNote(e)}
-                            value={note} />
-
-                    </View>
-
-                </View>
-
-            </View>
+            }
 
             <View style={styles.buttons}>
                 <Button title="Thay đổi bảng giá"
@@ -520,11 +555,12 @@ function RoomPayment({ route }) {
                 onRequestClose={() => setAlertVisible(!alertVisible)}
             >
                 <View style={styles.modalContainer}>
-                    <View style={styles.modal}>
+                    <View style={styles.notification}>
                         <View style={styles.modalContent}>
                             <View style={styles.electricContent}>
-                                <View style={styles.content}>
-                                    <Text style={styles.title}>Thêm hóa đơn thành công</Text>
+                                <View style={styles.contentAlert}>
+                                    <Text style={styles.titleAlert}>Thêm hóa đơn thành công.</Text>
+                                    <Text style={styles.titleAlert}>Bạn có muốn in ra hình ảnh hóa đơn ?</Text>
                                 </View>
                             </View>
 
@@ -597,6 +633,85 @@ function RoomPayment({ route }) {
                                 <Pressable
                                     style={[styles.button, styles.buttonSave]}
                                     onPress={() => setModalVisible(!modalVisible)}>
+                                    <Text style={styles.textBtn}>Lưu</Text>
+                                </Pressable>
+                            </View>
+
+                        </View>
+                    </View>
+                </View>
+
+            </Modal>
+
+            <Modal
+                animationType="fade"
+                transparent={true}
+                visible={true}
+                onRequestClose={() => setBillPresentation(!billPresentation)}
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.modal}>
+                        <View style={styles.modalContent}>
+                            <ViewShot style={styles.electricContent}
+                                ref={viewShotRef}
+                                options={{ format: 'jpg', quality: 1.0 }}>
+                                <View style={styles.contentDate}>
+                                    <Text style={styles.title}>Ngày 3/2/2024</Text>
+                                </View>
+
+                                <View style={styles.contentHeader}>
+                                    <Text style={styles.titleHeader}>Phòng {room}</Text>
+                                </View>
+
+                                <View style={styles.form}>
+                                    <View style={styles.titleBill}>
+                                        <Text>Số điện tháng trước:</Text>
+                                        <Text>Số điện tháng này:</Text>
+                                        <Text>Tổng số điện:</Text>
+                                        <Text>Tổng tiền điện:</Text>
+                                        <Text></Text>
+                                        <Text>Số nước tháng trước:</Text>
+                                        <Text>Số nước tháng này:</Text>
+                                        <Text>Tổng số nước:</Text>
+                                        <Text>Tổng tiền nước:</Text>
+                                        <Text></Text>
+                                        <Text>Tiền rác:</Text>
+                                        <Text></Text>
+                                        <Text>Tiền phòng:</Text>
+                                        <Text></Text>
+                                        <Text>Tổng cộng:</Text>
+                                    </View>
+                                    <View style={styles.titleBill}>
+                                        <Text style={styles.contentBill}>1000</Text>
+                                        <Text style={styles.title}>1000</Text>
+                                        <Text style={styles.contentBill}>1000</Text>
+                                        <Text style={styles.title}>1000.000</Text>
+                                        <Text></Text>
+                                        <Text style={styles.contentBill}>1000</Text>
+                                        <Text style={styles.title}>1000</Text>
+                                        <Text style={styles.contentBill}>1000</Text>
+                                        <Text style={styles.title}>1000.000</Text>
+                                        <Text></Text>
+                                        <Text style={styles.contentBill}>1000</Text>
+                                        <Text></Text>
+                                        <Text style={styles.contentBill}>1000</Text>
+                                        <Text></Text>
+                                        <Text style={styles.contentBillSum}>1000.000</Text>
+                                    </View>
+                                </View>
+
+                            </ViewShot>
+
+                            <View style={styles.buttonModal}>
+                                <Pressable
+                                    style={[styles.button, styles.buttonClose]}
+                                    onPress={() => setBillPresentation(!billPresentation)}>
+                                    <Text style={styles.textBtn}>Thoát</Text>
+                                </Pressable>
+
+                                <Pressable
+                                    style={[styles.button, styles.buttonSave]}
+                                    onPress={CaptureViewShot}>
                                     <Text style={styles.textBtn}>Lưu</Text>
                                 </Pressable>
                             </View>

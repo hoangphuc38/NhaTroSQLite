@@ -13,7 +13,6 @@ function HomeScreen({ navigation }) {
         const fetchAPI = async () => {
             try {
                 const response = await roomAPI.getAll();
-                console.log("Success: ", response);
                 setRoomData(response);
                 setLoading(false);
             }
@@ -31,12 +30,13 @@ function HomeScreen({ navigation }) {
     const [modalVisible, setModalVisible] = useState(false);
     const [roomType, setRoomType] = useState("");
     const [roomNumber, setRoomNumber] = useState("");
+    const [roomId, setRoomId] = useState("");
 
     const ShowRoomInfo = (item) => {
         setModalVisible(true);
         setRoomType(item.loaiPhong);
         setRoomNumber(item.tenPhong);
-        console.log("so phong: ", item.tenPhong);
+        setRoomId(item.id);
     }
 
     return (
@@ -104,6 +104,7 @@ function HomeScreen({ navigation }) {
                                     onPress={() => {
                                         navigation.navigate('Thanh toán', {
                                             room: roomNumber,
+                                            roomId: roomId,
                                         })
                                         setModalVisible(false)
                                     }}
