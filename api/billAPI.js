@@ -7,7 +7,6 @@ class BillAPI {
     }
 
     createHoaDonPhong = (
-        ngayHoaDon,
         soDienThangTruoc,
         soDienThangNay,
         tongSoDien,
@@ -24,7 +23,40 @@ class BillAPI {
     ) => {
         const url = `HoaDonPhong/new-hoadon`;
         return axiosClient.post(url, {
-            ngayHoaDon,
+            soDienThangTruoc,
+            soDienThangNay,
+            tongSoDien,
+            tongGiaDien,
+            soNuocThangTruoc,
+            soNuocThangNay,
+            tongSoNuoc,
+            tongGiaNuoc,
+            soNgayO,
+            tongTienPhong,
+            tongHoaDon,
+            ghiChu,
+            phongId,
+        })
+    }
+
+    updateHoaDonPhong = (
+        id,
+        soDienThangTruoc,
+        soDienThangNay,
+        tongSoDien,
+        tongGiaDien,
+        soNuocThangTruoc,
+        soNuocThangNay,
+        tongSoNuoc,
+        tongGiaNuoc,
+        soNgayO,
+        tongTienPhong,
+        tongHoaDon,
+        ghiChu,
+        phongId,
+    ) => {
+        const url = `HoaDonPhong/update-hoadon/${id}`;
+        return axiosClient.put(url, {
             soDienThangTruoc,
             soDienThangNay,
             tongSoDien,

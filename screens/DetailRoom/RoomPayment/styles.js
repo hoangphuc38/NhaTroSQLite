@@ -119,6 +119,12 @@ export default styles = StyleSheet.create({
         gap: 10,
     },
 
+    screenshotContent: {
+        gap: 10,
+        backgroundColor: "white",
+        padding: 10,
+    },
+
     contentAlert: {
         justifyContent: "flex-start",
         flexDirection: "column",

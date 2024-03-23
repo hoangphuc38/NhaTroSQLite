@@ -3,10 +3,11 @@ import { Modal, Pressable, ScrollView, Text, TextInput, View } from "react-nativ
 import styles from "./styles";
 import { Dropdown } from "react-native-element-dropdown";
 import { Button } from "@rneui/themed/dist/Button";
-import ViewShot, { captureScreen } from "react-native-view-shot";
+import ViewShot, { captureRef, captureScreen } from "react-native-view-shot";
 import billAPI from "../../../api/billAPI";
 import pricetableAPI from "../../../api/pricatableAPI";
 import roomAPI from "../../../api/roomAPI";
+import * as MediaLibrary from 'expo-media-library';
 
 function RoomPayment({ route }) {
     const MONTH = [
@@ -36,15 +37,18 @@ function RoomPayment({ route }) {
     const { room, roomId } = route.params;
     const viewShotRef = useRef();
 
+    const [status, requestPermission] = MediaLibrary.usePermissions();
+
+    if (status == null) {
+        requestPermission();
+    }
+
     useEffect(() => {
         const fetchRoomAPI = async () => {
             try {
                 const roomInfo = await roomAPI.getDetailRoom(roomId);
 
-                if (roomInfo.loaiPhong === 1) {
-                    setRoomType(false);
-                }
-                else setRoomType(true);
+                setRoomPrice(roomInfo.giaPhong.toString());
             }
             catch (error) {
                 console.log("Xảy ra lỗi: ", error);
@@ -66,6 +70,9 @@ function RoomPayment({ route }) {
                 let year = new Date();
                 const response = await billAPI.getHoaDonPhong(roomId, month.getMonth() + 1, year.getFullYear());
 
+                setHasBill(true);
+
+                setBillId(response.id);
                 setElectricBillLastMonth(response.soDienThangTruoc.toString());
                 setElectricBillThisMonth(response.soDienThangNay.toString());
                 setSumElectricBill(response.tongSoDien.toString());
@@ -92,11 +99,15 @@ function RoomPayment({ route }) {
                 setSumWaterBill('');
                 setLivingTime('');
                 setSumRoomBill('');
-                setTotalBill('');
+                setTotalBill('0');
+                setNote('');
+
+                setHasBill(false);
                 setLoading(false);
             }
         }
 
+        setLoading(true);
         fetchRoomAPI();
         fetchTableAPI();
         fetchBillAPI();
@@ -108,20 +119,20 @@ function RoomPayment({ route }) {
     const [isFocusYear, setIsFocusYear] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
     const [alertVisible, setAlertVisible] = useState(false);
-    const [billPresentation, setBillPresentation] = useState(true);
-    const [loading, setLoading] = useState(true);
-    const [uri, setUri] = useState('');
-
-    const [roomType, setRoomType] = useState(false);
+    const [updateForm, setUpdateForm] = useState(false);
+    const [billPresentation, setBillPresentation] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [hasBill, setHasBill] = useState(false);
 
     //Get data in priceTable
-    const [kiotPrice, setKiotPrice] = useState('0');
+    //const [kiotPrice, setKiotPrice] = useState('0');
     const [roomPrice, setRoomPrice] = useState('0');
     const [waterPrice, setWaterPrice] = useState('0');
     const [electricPrice, setElectricPrice] = useState('0');
     const [rubbishPrice, setRubishPrice] = useState('0');
 
     //Get data in bill
+    const [billId, setBillId] = useState(0);
     const [electricBillThisMonth, setElectricBillThisMonth] = useState('0');
     const [sumElectricBill, setSumElectricBill] = useState('0');
     const [electricTotal, setElectricTotal] = useState('0');
@@ -139,28 +150,40 @@ function RoomPayment({ route }) {
     const [totalBill, setTotalBill] = useState('0');
     const [note, setNote] = useState('');
 
-    const handleElectricBillThisMonthChange = (value, lastValue) => {
-        setElectricBillThisMonth(value);
-        const thisMonth = parseInt(value);
-        const lastMonth = parseInt(lastValue);
-        const sum = thisMonth - lastMonth;
-        setSumElectricBill(sum.toString());
-    };
+    const handleElectricBillThisMonthChange = useMemo(() => {
+        if (electricBillLastMonth === '' || electricBillThisMonth === '') {
+            setSumElectricBill('0');
+            return '0';
+        }
 
-    const handleWaterBillThisMonthChange = (value, lastValue) => {
-        setWaterBillThisMonth(value);
-        const thisMonth = parseInt(value);
-        const lastMonth = parseInt(lastValue);
-        const sum = thisMonth - lastMonth;
-        setSumWaterBill(sum.toString());
-    };
+        const thisMonth = parseInt(electricBillThisMonth);
+        const lastMonth = parseInt(electricBillLastMonth);
+        const sum = (thisMonth - lastMonth).toString();
+        setSumElectricBill(sum);
+        return sum;
+
+    }, [electricBillLastMonth, electricBillThisMonth]);
+
+    const handleWaterBillThisMonthChange = useMemo(() => {
+        if (waterBillLastMonth === '' || waterBillThisMonth === '') {
+            setSumWaterBill('0');
+            return '0';
+        }
+
+        const thisMonth = parseInt(waterBillThisMonth);
+        const lastMonth = parseInt(waterBillLastMonth);
+        const sum = (thisMonth - lastMonth).toString();
+        setSumWaterBill(sum);
+        return sum;
+    }, [waterBillLastMonth, waterBillThisMonth]);
 
     const totalElectricUpdate = useMemo(() => {
-        if (parseInt(sumElectricBill) < 0 || (parseInt(sumElectricBill) * parseFloat(electricPrice)).toString() === 'NaN') {
+        if (parseInt(sumElectricBill) < 0 || sumElectricBill === '0'
+            || (parseInt(sumElectricBill) * parseFloat(electricPrice)).toString() === 'NaN') {
             return '0';
         }
         else {
-            const sum = (parseInt(sumElectricBill) * parseFloat(electricPrice)).toString()
+            const sum = (Math.round((parseInt(sumElectricBill) * parseFloat(electricPrice)))).toString()
             setElectricTotal(sum);
             return sum;
         }
@@ -171,7 +194,7 @@ function RoomPayment({ route }) {
             return '0';
         }
         else {
-            const sum = (parseInt(sumWaterBill) * parseFloat(waterPrice)).toString()
+            const sum = (Math.round((parseInt(sumWaterBill) * parseFloat(waterPrice)))).toString()
             setWaterTotal(sum)
             return sum;
         }
@@ -181,25 +204,18 @@ function RoomPayment({ route }) {
         if (parseInt(livingTime) < 0 || livingTime === '0' || livingTime === '') {
             return '0';
         }
-        if (roomType === false) {
-            const sum = (parseInt(parseFloat(roomPrice) / 30 * parseInt(livingTime))).toString();
-            setSumRoomBill(sum)
-            return sum;
-        }
-        else {
-            const sum = (parseInt(parseFloat(kiotPrice) / 30 * parseInt(livingTime))).toString();
-            setSumRoomBill(sum)
-            return sum;
-        }
+        const sum = (Math.round((parseInt(parseFloat(roomPrice) / 30 * parseInt(livingTime))))).toString();
+        setSumRoomBill(sum)
+        return sum;
 
-    }, [livingTime, roomPrice, kiotPrice])
+    }, [livingTime, roomPrice])
 
     const totalBillUpdate = useMemo(() => {
         let electric = parseFloat(electricTotal);
         let water = parseFloat(waterTotal);
         let rubbish = parseFloat(rubbishPrice);
         let room = parseFloat(sumRoomBill);
-        if (electric < 0 || water < 0 || room < 0) {
+        if (electric == 0 || water == 0 || room == 0 || totalBill === "NaN") {
             return '0';
         }
         else {
@@ -221,33 +237,51 @@ function RoomPayment({ route }) {
         return (year.getFullYear()).toString();
     }
 
-    const renderMonth = () => {
-        if (month || isFocusMonth) {
-            return (
-                <Text style={[styles.label, isFocusMonth && { color: 'blue' }]}>
-                    Tháng
-                </Text>
-            );
-        }
-        return null;
-    };
+    const getBillOfMonth = async (monthValue, yearValue) => {
+        try {
+            const response = await billAPI.getHoaDonPhong(roomId, parseInt(monthValue) + 1, parseInt(yearValue));
 
-    const renderYear = () => {
-        if (year || isFocusYear) {
-            return (
-                <Text style={[styles.label, isFocusYear && { color: 'blue' }]}>
-                    Năm
-                </Text>
-            );
+            setHasBill(true);
+
+            setBillId(response.id);
+            setElectricBillLastMonth(response.soDienThangTruoc.toString());
+            setElectricBillThisMonth(response.soDienThangNay.toString());
+            setSumElectricBill(response.tongSoDien.toString());
+            setLivingTime(response.soNgayO.toString());
+            setSumRoomBill(response.tongTienPhong.toString());
+
+            setWaterBillLastMonth(response.soNuocThangTruoc.toString());
+            setWaterBillThisMonth(response.soNuocThangNay.toString());
+            setSumWaterBill(response.tongSoNuoc.toString())
+
+            setTotalBill(response.tongHoaDon.toString());
+            setNote(response.ghiChu);
+
+            setLoading(false);
         }
-        return null;
-    };
+        catch (error) {
+            console.log("Xảy ra lỗi: ", error);
+            console.log("Tháng: ", month);
+            console.log("Năm: ", year);
+            setElectricBillLastMonth('');
+            setElectricBillThisMonth('');
+            setSumElectricBill('');
+
+            setWaterBillLastMonth('');
+            setWaterBillThisMonth('');
+            setSumWaterBill('');
+            setLivingTime('');
+            setSumRoomBill('');
+            setTotalBill('0');
+            setNote('');
+
+            setHasBill(false);
+            setLoading(false);
+        }
+    }
 
     const handleCreateBill = async () => {
-        let today = new Date();
-
         return await billAPI.createHoaDonPhong(
-            today.toJSON(),
             parseInt(electricBillLastMonth),
             parseInt(electricBillThisMonth),
             parseInt(sumElectricBill),
@@ -271,33 +305,67 @@ function RoomPayment({ route }) {
             });
     }
 
+    const handleUpdateBill = async () => {
+        return await billAPI.updateHoaDonPhong(
+            billId,
+            parseInt(electricBillLastMonth),
+            parseInt(electricBillThisMonth),
+            parseInt(sumElectricBill),
+            parseFloat(electricTotal),
+            parseInt(waterBillLastMonth),
+            parseInt(waterBillThisMonth),
+            parseInt(sumWaterBill),
+            parseFloat(waterTotal),
+            parseInt(livingTime),
+            parseFloat(sumRoomBill),
+            parseFloat(totalBill),
+            note,
+            roomId
+        )
+            .then(() => {
+                setUpdateForm(true);
+            })
+            .catch((error) => {
+                console.log(error);
+                alert("Chỉnh sửa hóa đơn thất bại");
+            });
+    }
+
     const getPriceTableData = (data) => {
         for (let i = 0; i < data.length; i++) {
-            if (data[i].id === 1) setKiotPrice(data[i].gia.toString());
-            else if (data[i].id === 2) setRoomPrice(data[i].gia.toString());
-            else if (data[i].id === 3) setElectricPrice(data[i].gia.toString());
+            if (data[i].id === 3) setElectricPrice(data[i].gia.toString());
             else if (data[i].id === 4) setWaterPrice(data[i].gia.toString());
             else setRubishPrice(data[i].gia.toString());
         }
     }
 
     const CaptureViewShot = async () => {
-        const imageURI = await viewShotRef.current.capture();
-        console.log("Chụp thành công: ", imageURI);
-        setUri(imageURI);
+        try {
+            const localUri = await captureRef(viewShotRef, {
+                height: 440,
+                quality: 1,
+            });
 
-        if (!uri) return;
+            await MediaLibrary.saveToLibraryAsync(localUri);
+            if (localUri) {
+                alert("Lưu ảnh thành công, vui lòng kiểm tra bộ sưu tập");
+            }
 
-        const albumName = 'Screenshot';
-        const path = await RNFS.copyFile(uri, `${RNFS.DocumentDirectoryPath}/${albumName}/${Date.now()}.jpg`);
-        await CameraRoll.saveToCameraRoll(path, { album: albumName });
+            setBillPresentation(false);
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
+    const handleOpenBill = () => {
+        setAlertVisible(false);
+        setBillPresentation(true);
     }
 
     return (
         <ScrollView style={styles.container}>
             <View style={styles.filter}>
                 <View>
-                    {renderMonth()}
                     <Dropdown
                         style={[styles.dropdown, isFocusMonth && { borderColor: 'blue' }]}
                         placeholderStyle={styles.placeholderStyle}
@@ -320,7 +388,6 @@ function RoomPayment({ route }) {
                 </View>
 
                 <View>
-                    {renderYear()}
                     <Dropdown
                         style={[styles.dropdown, isFocusYear && { borderColor: 'blue' }]}
                         placeholderStyle={styles.placeholderStyle}
@@ -372,7 +439,7 @@ function RoomPayment({ route }) {
                                 <Text style={styles.title}>Số điện tháng này:</Text>
                                 <TextInput style={styles.input}
                                     inputMode="numeric"
-                                    onChangeText={(e) => handleElectricBillThisMonthChange(e, electricBillLastMonth)}
+                                    onChangeText={(e) => setElectricBillThisMonth(e)}
                                     value={electricBillThisMonth}
                                 />
                             </View>
@@ -382,7 +449,7 @@ function RoomPayment({ route }) {
                                 <TextInput style={styles.inputSum}
                                     inputMode="numeric"
                                     readOnly
-                                    value={parseInt(sumElectricBill) < 0 || sumElectricBill === 'NaN' ? '0' : sumElectricBill}
+                                    value={handleElectricBillThisMonthChange}
                                 />
                             </View>
 
@@ -418,7 +485,7 @@ function RoomPayment({ route }) {
                                 <Text style={styles.title}>Số nước tháng này:</Text>
                                 <TextInput style={styles.input}
                                     inputMode="numeric"
-                                    onChangeText={(e) => handleWaterBillThisMonthChange(e, waterBillLastMonth)}
+                                    onChangeText={(e) => setWaterBillThisMonth(e)}
                                     value={waterBillThisMonth}
                                 />
                             </View>
@@ -428,10 +495,7 @@ function RoomPayment({ route }) {
                                 <TextInput style={styles.inputSum}
                                     inputMode="numeric"
                                     readOnly
-                                    value={parseInt(sumWaterBill) < 0 || sumWaterBill === 'NaN'
-                                        ? '0'
-                                        : sumWaterBill
-                                    }
+                                    value={handleWaterBillThisMonthChange}
                                 />
                             </View>
 
@@ -465,7 +529,7 @@ function RoomPayment({ route }) {
                                 <TextInput style={styles.input}
                                     inputMode="numeric"
                                     editable={false}
-                                    value={roomType ? kiotPrice : roomPrice} />
+                                    value={roomPrice} />
                             </View>
 
                             <View style={styles.content}>
@@ -497,7 +561,7 @@ function RoomPayment({ route }) {
                                 <TextInput style={styles.inputFinal}
                                     inputMode="numeric"
                                     readOnly
-                                    value={totalBillUpdate} />
+                                    value={totalBillUpdate === "NaN" ? "0" : totalBillUpdate} />
 
                             </View>
 
@@ -533,19 +597,37 @@ function RoomPayment({ route }) {
                     }}
                     onPress={() => setModalVisible(true)} />
 
-                <Button title="Xuất bảng thanh toán"
-                    titleStyle={{ fontWeight: 'bold', fontSize: 14 }}
-                    buttonStyle={{
-                        backgroundColor: 'blue',
-                        borderColor: 'transparent',
-                        borderWidth: 0,
-                        borderRadius: 30,
-                    }}
-                    containerStyle={{
-                        width: "auto",
-                        marginBottom: 15,
-                    }}
-                    onPress={handleCreateBill} />
+                {
+                    hasBill
+                        ? <Button title="Chỉnh sửa hóa đơn"
+                            titleStyle={{ fontWeight: 'bold', fontSize: 14 }}
+                            buttonStyle={{
+                                backgroundColor: 'blue',
+                                borderColor: 'transparent',
+                                borderWidth: 0,
+                                borderRadius: 30,
+                            }}
+                            containerStyle={{
+                                width: "auto",
+                                marginBottom: 15,
+                            }}
+                            onPress={handleUpdateBill} />
+                        : <Button title="Thêm hóa đơn"
+                            titleStyle={{ fontWeight: 'bold', fontSize: 14 }}
+                            buttonStyle={{
+                                backgroundColor: 'blue',
+                                borderColor: 'transparent',
+                                borderWidth: 0,
+                                borderRadius: 30,
+                            }}
+                            containerStyle={{
+                                width: "auto",
+                                marginBottom: 15,
+                            }}
+                            onPress={handleCreateBill} />
+                }
+
+
             </View>
 
             <Modal
@@ -567,13 +649,48 @@ function RoomPayment({ route }) {
                             <View style={styles.buttonModal}>
                                 <Pressable
                                     style={[styles.button, styles.buttonClose]}
-                                    onPress={() => setAlertVisible(!alertVisible)}>
+                                    onPress={() => setAlertVisible(false)}>
                                     <Text style={styles.textBtn}>Thoát</Text>
                                 </Pressable>
 
                                 <Pressable
                                     style={[styles.button, styles.buttonSave]}
-                                    onPress={() => setAlertVisible(!alertVisible)}>
+                                    onPress={handleOpenBill}>
+                                    <Text style={styles.textBtn}>OK</Text>
+                                </Pressable>
+                            </View>
+
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+
+            <Modal
+                animationType="fade"
+                transparent={true}
+                visible={updateForm}
+                onRequestClose={() => setUpdateForm(!updateForm)}
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.notification}>
+                        <View style={styles.modalContent}>
+                            <View style={styles.electricContent}>
+                                <View style={styles.contentAlert}>
+                                    <Text style={styles.titleAlert}>Chỉnh sửa hóa đơn thành công.</Text>
+                                    <Text style={styles.titleAlert}>Bạn có muốn in ra hình ảnh hóa đơn ?</Text>
+                                </View>
+                            </View>
+
+                            <View style={styles.buttonModal}>
+                                <Pressable
+                                    style={[styles.button, styles.buttonClose]}
+                                    onPress={() => setUpdateForm(false)}>
+                                    <Text style={styles.textBtn}>Thoát</Text>
+                                </Pressable>
+
+                                <Pressable
+                                    style={[styles.button, styles.buttonSave]}
+                                    onPress={handleOpenBill}>
                                     <Text style={styles.textBtn}>OK</Text>
                                 </Pressable>
                             </View>
@@ -594,31 +711,35 @@ function RoomPayment({ route }) {
                         <View style={styles.modalContent}>
                             <View style={styles.electricContent}>
                                 <View style={styles.content}>
-                                    <Text style={styles.title}>Giá phòng (nghìn đồng/tháng):</Text>
+                                    <Text style={styles.title}>Giá phòng {room} (nghìn đồng/tháng):</Text>
                                     <TextInput style={styles.inputModal}
                                         inputMode="numeric"
-                                        value="12" />
+                                        onChangeText={(e) => setRoomPrice(e)}
+                                        value={roomPrice} />
                                 </View>
 
                                 <View style={styles.content}>
                                     <Text style={styles.title}>Giá điện (nghìn đồng/kWh):</Text>
                                     <TextInput style={styles.inputModal}
                                         inputMode="numeric"
-                                        value="12" />
+                                        onChangeText={(e) => setElectricPrice(e)}
+                                        value={electricPrice} />
                                 </View>
 
                                 <View style={styles.content}>
                                     <Text style={styles.title}>Giá nước (nghìn đồng/khối):</Text>
                                     <TextInput style={styles.inputModal}
                                         inputMode="numeric"
-                                        value="12" />
+                                        onChangeText={(e) => setWaterPrice(e)}
+                                        value={waterPrice} />
                                 </View>
 
                                 <View style={styles.content}>
                                     <Text style={styles.title}>Giá rác (nghìn đồng/tháng):</Text>
                                     <TextInput style={styles.inputModal}
                                         inputMode="numeric"
-                                        value="12" />
+                                        onChangeText={(e) => setRubishPrice(e)}
+                                        value={rubbishPrice} />
                                 </View>
 
                             </View>
@@ -646,17 +767,17 @@ function RoomPayment({ route }) {
             <Modal
                 animationType="fade"
                 transparent={true}
-                visible={true}
+                visible={billPresentation}
                 onRequestClose={() => setBillPresentation(!billPresentation)}
             >
                 <View style={styles.modalContainer}>
                     <View style={styles.modal}>
                         <View style={styles.modalContent}>
-                            <ViewShot style={styles.electricContent}
+                            <View style={styles.screenshotContent}
                                 ref={viewShotRef}
-                                options={{ format: 'jpg', quality: 1.0 }}>
+                                collapsable={false}>
                                 <View style={styles.contentDate}>
-                                    <Text style={styles.title}>Ngày 3/2/2024</Text>
+                                    <Text style={styles.title}>{getThisMonth() + "/" + getThisYear()}</Text>
                                 </View>
 
                                 <View style={styles.contentHeader}>
@@ -682,30 +803,30 @@ function RoomPayment({ route }) {
                                         <Text>Tổng cộng:</Text>
                                     </View>
                                     <View style={styles.titleBill}>
-                                        <Text style={styles.contentBill}>1000</Text>
-                                        <Text style={styles.title}>1000</Text>
-                                        <Text style={styles.contentBill}>1000</Text>
-                                        <Text style={styles.title}>1000.000</Text>
+                                        <Text style={styles.contentBill}>{electricBillLastMonth}</Text>
+                                        <Text style={styles.title}>{electricBillThisMonth}</Text>
+                                        <Text style={styles.contentBill}>{sumElectricBill}</Text>
+                                        <Text style={styles.title}>{electricTotal + ".000"}</Text>
                                         <Text></Text>
-                                        <Text style={styles.contentBill}>1000</Text>
-                                        <Text style={styles.title}>1000</Text>
-                                        <Text style={styles.contentBill}>1000</Text>
-                                        <Text style={styles.title}>1000.000</Text>
+                                        <Text style={styles.contentBill}>{waterBillLastMonth}</Text>
+                                        <Text style={styles.title}>{waterBillThisMonth}</Text>
+                                        <Text style={styles.contentBill}>{sumWaterBill}</Text>
+                                        <Text style={styles.title}>{waterTotal + ".000"}</Text>
                                         <Text></Text>
-                                        <Text style={styles.contentBill}>1000</Text>
+                                        <Text style={styles.contentBill}>{rubbishPrice}</Text>
                                         <Text></Text>
-                                        <Text style={styles.contentBill}>1000</Text>
+                                        <Text style={styles.contentBill}>{sumRoomBill}</Text>
                                         <Text></Text>
-                                        <Text style={styles.contentBillSum}>1000.000</Text>
+                                        <Text style={styles.contentBillSum}>{totalBill + ".000"}</Text>
                                     </View>
                                 </View>
 
-                            </ViewShot>
+                            </View>
 
                             <View style={styles.buttonModal}>
                                 <Pressable
                                     style={[styles.button, styles.buttonClose]}
-                                    onPress={() => setBillPresentation(!billPresentation)}>
+                                    onPress={() => setBillPresentation(false)}>
                                     <Text style={styles.textBtn}>Thoát</Text>
                                 </Pressable>
 

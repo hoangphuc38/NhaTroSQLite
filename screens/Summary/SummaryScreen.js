@@ -31,19 +31,6 @@ function SummaryScreen() {
         { label: '2029', value: '2029' },
     ];
 
-    const dataTable = [
-        { id: '1', room: "1", content: "2000.000", note: "" },
-        { id: '2', room: "2", content: "1500.000", note: "" },
-        { id: '3', room: "3", content: "900.000", note: "" },
-        { id: '4', room: "4", content: "450.000", note: "" },
-        { id: '5', room: "5", content: "350.000", note: "" },
-        { id: '6', room: "6", content: "2000.000", note: "" },
-        { id: '7', room: "7", content: "1500.000", note: "" },
-        { id: '8', room: "8", content: "900.000", note: "" },
-        { id: '9', room: "9", content: "450.000", note: "" },
-        { id: '10', room: "10", content: "350.000", note: "" },
-    ]
-
     const [month, setMonth] = useState(null);
     const [isFocusMonth, setIsFocusMonth] = useState(false);
     const [year, setYear] = useState(null);
@@ -80,7 +67,7 @@ function SummaryScreen() {
 
     const getThisMonth = () => {
         let month = new Date();
-        return 'Tháng ' + (month.getMonth() + 1).toString();
+        return 'Tháng ' + (month.getMonth()).toString();
     }
 
     const getThisYear = () => {
