@@ -39,25 +39,31 @@ function SummaryScreen() {
     const [electricTotal, setElectricTotal] = useState('');
     const [waterTotal, setWaterTotal] = useState('');
     const [total, setTotal] = useState('');
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         const fetchAPI = async () => {
             try {
                 let month = new Date();
                 let year = new Date();
+                setMonth((month.getMonth()).toString());
+                setYear((year.getFullYear()).toString());
+
                 const response = await summaryAPI.getSummary(month.getMonth() + 1, year.getFullYear());
-                console.log("Success: ", response);
                 setData(response.danhSachHoaDon);
                 setElectricTotal(response.tongDien.toString());
                 setWaterTotal(response.tongNuoc.toString());
                 setTotal(response.tongTienTongKet.toString());
+                setLoading(false);
 
             }
             catch (error) {
                 console.log("Xảy ra lỗi: ", error);
+                setLoading(false);
             }
         }
 
+        setLoading(true);
         const unsubscribe = navigation.addListener('focus', fetchAPI);
 
         fetchAPI();
@@ -75,27 +81,28 @@ function SummaryScreen() {
         return (year.getFullYear()).toString();
     }
 
-    const renderMonth = () => {
-        if (month || isFocusMonth) {
-            return (
-                <Text style={[styles.label, isFocusMonth && { color: 'blue' }]}>
-                    Tháng
-                </Text>
-            );
-        }
-        return null;
-    };
+    const getSummaryOfMonth = async (monthValue, yearValue) => {
+        try {
+            setLoading(true);
+            const response = await summaryAPI.getSummary(parseInt(monthValue) + 1, parseInt(yearValue));
+            setData(response.danhSachHoaDon);
+            setElectricTotal(response.tongDien.toString());
+            setWaterTotal(response.tongNuoc.toString());
+            setTotal(response.tongTienTongKet.toString());
 
-    const renderYear = () => {
-        if (year || isFocusYear) {
-            return (
-                <Text style={[styles.label, isFocusYear && { color: 'blue' }]}>
-                    Năm
-                </Text>
-            );
+            setLoading(false);
         }
-        return null;
-    };
+        catch (error) {
+            console.log("Xảy ra lỗi: ", error);
+            console.log("Tháng: ", parseInt(monthValue));
+            console.log("Năm: ", yearValue);
+            setData([]);
+            setElectricTotal('0');
+            setWaterTotal('0');
+            setTotal('0');
+            setLoading(false);
+        }
+    }
 
     const renderItem = (item, index) => {
         return (
@@ -113,7 +120,6 @@ function SummaryScreen() {
         <View style={styles.container}>
             <View style={styles.filter}>
                 <View>
-                    {renderMonth()}
                     <Dropdown
                         style={[styles.dropdown, isFocusMonth && { borderColor: 'blue' }]}
                         placeholderStyle={styles.placeholderStyle}
@@ -131,12 +137,12 @@ function SummaryScreen() {
                         onChange={item => {
                             setMonth(item.value);
                             setIsFocusMonth(false);
+                            getSummaryOfMonth(item.value, year);
                         }}
                     />
                 </View>
 
                 <View>
-                    {renderYear()}
                     <Dropdown
                         style={[styles.dropdown, isFocusYear && { borderColor: 'blue' }]}
                         placeholderStyle={styles.placeholderStyle}
@@ -154,59 +160,66 @@ function SummaryScreen() {
                         onChange={item => {
                             setYear(item.value);
                             setIsFocusYear(false);
+                            getSummaryOfMonth(month, item.value);
                         }}
                     />
                 </View>
 
             </View>
 
-            <View style={styles.tableWrapper}>
+            {
+                loading ? <Text>Đang tải ...</Text>
+                    :
+                    <View style={styles.tableWrapper}>
 
-                <View style={styles.headerTopBar}>
-                    <Text style={styles.headerTopBarText}>Tổng kết tháng</Text>
-                </View>
+                        <View style={styles.headerTopBar}>
+                            <Text style={styles.headerTopBarText}>Tổng kết tháng</Text>
+                        </View>
 
-                <View style={styles.header}>
-                    <Text style={styles.headingRoom}>Phòng</Text>
-                    <Text style={styles.headingContent}>Tổng cộng</Text>
-                    <Text style={styles.headingNote}>Ghi chú</Text>
-                </View>
+                        <View style={styles.header}>
+                            <Text style={styles.headingRoom}>Phòng</Text>
+                            <Text style={styles.headingContent}>Tổng cộng</Text>
+                            <Text style={styles.headingNote}>Ghi chú</Text>
+                        </View>
 
-                <View style={styles.list}>
-                    <FlatList
-                        data={data}
-                        keyExtractor={item => item.id}
-                        renderItem={({ item, index }) => renderItem(item, index)}
-                    />
-                </View>
+                        <View style={styles.list}>
+                            <FlatList
+                                data={data}
+                                keyExtractor={item => item.id}
+                                renderItem={({ item, index }) => renderItem(item, index)}
+                            />
+                        </View>
 
-                <View style={styles.content}>
-                    <Text style={styles.title}>Tổng số điện:</Text>
-                    <TextInput style={styles.inputSum}
-                        inputMode="numeric"
-                        readOnly
-                        value={electricTotal + '   nghìn đồng'}
-                    />
-                </View>
+                        <View style={styles.content}>
+                            <Text style={styles.title}>Tổng số điện:</Text>
+                            <TextInput style={styles.inputSum}
+                                inputMode="numeric"
+                                readOnly
+                                value={electricTotal + '   nghìn đồng'}
+                            />
+                        </View>
 
-                <View style={styles.content}>
-                    <Text style={styles.title}>Tổng số nước:</Text>
-                    <TextInput style={styles.inputSum}
-                        inputMode="numeric"
-                        readOnly
-                        value={waterTotal + '   nghìn đồng'}
-                    />
-                </View>
+                        <View style={styles.content}>
+                            <Text style={styles.title}>Tổng số nước:</Text>
+                            <TextInput style={styles.inputSum}
+                                inputMode="numeric"
+                                readOnly
+                                value={waterTotal + '   nghìn đồng'}
+                            />
+                        </View>
 
-                <View style={styles.content}>
-                    <Text style={styles.title}>Tổng cộng:</Text>
-                    <TextInput style={styles.inputSum}
-                        inputMode="numeric"
-                        readOnly
-                        value={total + '   nghìn đồng'}
-                    />
-                </View>
-            </View>
+                        <View style={styles.content}>
+                            <Text style={styles.title}>Tổng cộng:</Text>
+                            <TextInput style={styles.inputSum}
+                                inputMode="numeric"
+                                readOnly
+                                value={total + '   nghìn đồng'}
+                            />
+                        </View>
+                    </View>
+            }
+
+
         </View>
     );
 }

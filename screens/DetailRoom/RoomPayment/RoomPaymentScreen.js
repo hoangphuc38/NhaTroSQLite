@@ -68,6 +68,10 @@ function RoomPayment({ route }) {
             try {
                 let month = new Date();
                 let year = new Date();
+
+                setMonth((month.getMonth()).toString());
+                setYear((year.getFullYear()).toString());
+
                 const response = await billAPI.getHoaDonPhong(roomId, month.getMonth() + 1, year.getFullYear());
 
                 setHasBill(true);
@@ -239,6 +243,7 @@ function RoomPayment({ route }) {
 
     const getBillOfMonth = async (monthValue, yearValue) => {
         try {
+            setLoading(true);
             const response = await billAPI.getHoaDonPhong(roomId, parseInt(monthValue) + 1, parseInt(yearValue));
 
             setHasBill(true);
@@ -261,8 +266,8 @@ function RoomPayment({ route }) {
         }
         catch (error) {
             console.log("Xảy ra lỗi: ", error);
-            console.log("Tháng: ", month);
-            console.log("Năm: ", year);
+            console.log("Tháng: ", parseInt(monthValue));
+            console.log("Năm: ", yearValue);
             setElectricBillLastMonth('');
             setElectricBillThisMonth('');
             setSumElectricBill('');
@@ -383,6 +388,7 @@ function RoomPayment({ route }) {
                         onChange={item => {
                             setMonth(item.value);
                             setIsFocusMonth(false);
+                            getBillOfMonth(item.value, year);
                         }}
                     />
                 </View>
@@ -405,6 +411,7 @@ function RoomPayment({ route }) {
                         onChange={item => {
                             setYear(item.value);
                             setIsFocusYear(false);
+                            getBillOfMonth(month, item.value);
                         }}
                     />
                 </View>
