@@ -3,7 +3,7 @@ import { Modal, Pressable, ScrollView, Text, TextInput, View } from "react-nativ
 import styles from "./styles";
 import { Dropdown } from "react-native-element-dropdown";
 import { Button } from "@rneui/themed/dist/Button";
-import ViewShot, { captureRef, captureScreen } from "react-native-view-shot";
+import { captureRef } from "react-native-view-shot";
 import billAPI from "../../../api/billAPI";
 import pricetableAPI from "../../../api/pricatableAPI";
 import roomAPI from "../../../api/roomAPI";

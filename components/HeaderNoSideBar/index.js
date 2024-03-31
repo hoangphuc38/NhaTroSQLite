@@ -1,11 +1,11 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faArrowLeft, faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
+import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import styles from "./styles";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-function HeaderNoSideBar({ title, navigation }) {
+function HeaderNoSideBar({ title, navigation, iconButton, onPressButton }) {
     const goBack = () => {
         navigation.goBack();
     }
@@ -18,7 +18,17 @@ function HeaderNoSideBar({ title, navigation }) {
 
                 <Text style={styles.text}>{title}</Text>
 
-                <FontAwesomeIcon icon={faMagnifyingGlass} size={20} />
+                {
+                    iconButton !== null
+                        ? <TouchableOpacity style={styles.button} onPress={onPressButton}>
+                            <FontAwesomeIcon icon={iconButton} size={20} />
+                        </TouchableOpacity>
+                        :
+                        <Text></Text>
+
+                }
+
+
             </View>
         </SafeAreaView>
     );

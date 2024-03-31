@@ -13,4 +13,10 @@ export default styles = StyleSheet.create({
     text: {
         fontSize: 20,
     },
+
+    button: {
+        backgroundColor: "white",
+        padding: 2,
+        borderRadius: 5,
+    },
 })

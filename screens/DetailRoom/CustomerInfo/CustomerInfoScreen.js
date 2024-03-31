@@ -3,48 +3,23 @@ import { FlatList, View, Text } from "react-native";
 import styles from "./styles";
 import CustomerCard from "../../../components/CustomerCard";
 import { SearchBar } from '@rneui/themed/dist/SearchBar';
-import roomAPI from "../../../api/roomAPI";
+import customerAPI from "../../../api/customerAPI";
 
 function CustomerInfoScreen({ route }) {
-    // const userList = [
-    //     {
-    //         id: '1',
-    //         name: "Nguyễn Văn A",
-    //         dateBirth: "1990",
-    //         male: true,
-    //         noidangkyHoKhau: "Thông Bình - Tân Hồng - Đồng Tháp",
-    //         numberCard: "012345678",
-    //         job: "Công nhân",
-    //         numberRoom: "1",
-    //         ngayDi: null,
-    //         daChuyen: false,
-    //     },
-    //     {
-    //         id: '2',
-    //         name: "Nguyễn Văn A",
-    //         dateBirth: "1990",
-    //         male: true,
-    //         noidangkyHoKhau: "Hà Tĩnh",
-    //         numberCard: "012345678",
-    //         job: "Công nhân",
-    //         numberRoom: "1",
-    //         ngayDi: "10/10/2023",
-    //         daChuyen: true,
-    //     },
 
-    // ]
-    const { room } = route.params;
+    const { room, roomId } = route.params;
 
     useEffect(() => {
         const fetchAPI = async () => {
             try {
-                const response = await roomAPI.getDetailRoom(room);
+                const response = await customerAPI.getPeopleInRoom(roomId);
                 console.log("so phong: ", room);
                 console.log("Success: ", response);
-                setUserList(response.danhSachNguoi);
+                setUserList(response);
             }
             catch (error) {
                 console.log("Xảy ra lỗi: ", error);
+                console.log("id: ", roomId)
             }
         }
 
@@ -57,6 +32,10 @@ function CustomerInfoScreen({ route }) {
 
     return (
         <View style={styles.container}>
+            <View style={styles.roomTitle}>
+                <Text style={styles.roomText}>Phòng {room}</Text>
+            </View>
+
             <View style={styles.searchbar}>
                 <SearchBar
                     placeholder="Tìm kiếm người ở"
@@ -80,7 +59,7 @@ function CustomerInfoScreen({ route }) {
                             noidangkyHoKhau={item.noiDangKyHoKhau}
                             numberCard={item.cccd}
                             job={item.ngheNghiep}
-                            numberRoom={item.phongId}
+                            numberRoom={room}
                             daChuyen={item.daChuyen}
                             ngayDi={item.ngayDi}
                         />

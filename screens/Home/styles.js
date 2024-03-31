@@ -112,7 +112,11 @@ export default styles = StyleSheet.create({
     },
 
     buttonClose: {
-        backgroundColor: '#2196F3',
+        backgroundColor: '#B31312',
+    },
+
+    buttonSubmit: {
+        backgroundColor: '#2196F3'
     },
 
     textBtn: {
@@ -120,4 +124,68 @@ export default styles = StyleSheet.create({
         fontWeight: 'bold',
         textAlign: 'center',
     },
+
+    modalAddRoom: {
+        width: "90%",
+        backgroundColor: 'white',
+        borderRadius: 15,
+        paddingHorizontal: 15,
+        paddingVertical: 5,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5,
+    },
+
+    buttonAdd: {
+        borderRadius: 10,
+        padding: 5,
+        elevation: 2,
+        width: "40%",
+        alignSelf: "center"
+    },
+
+    buttons: {
+        flexDirection: "row",
+        justifyContent: "center",
+        gap: 10
+    },
+
+    inputWrapper: {
+        gap: 5,
+        marginBottom: 10,
+    },
+
+    titleInput: {
+        fontSize: 14,
+        textAlign: "left",
+        fontWeight: "bold"
+    },
+
+    contentInput: {
+        backgroundColor: "white",
+        borderRadius: 10,
+        width: "100%",
+        paddingHorizontal: 10,
+        paddingVertical: 2,
+        fontSize: 14,
+        borderColor: 'gray',
+        borderWidth: 1
+    },
+
+    radioContainer: {
+        flexDirection: "row",
+        gap: 40,
+    },
+
+    radiobutton: {
+        flexDirection: "row",
+        alignItems: "center"
+    }
+
 })

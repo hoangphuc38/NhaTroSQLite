@@ -8,8 +8,10 @@ export default styles = StyleSheet.create({
         gap: 10,
         paddingBottom: 10,
         marginBottom: 15,
-        borderBottomColor: "gray",
-        borderBottomWidth: 2,
+        backgroundColor: "white",
+        padding: 10,
+        borderRadius: 10,
+        elevation: 5
     },
 
     leftContent: {

@@ -1,11 +1,11 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faBars, faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
+import { faBars } from "@fortawesome/free-solid-svg-icons";
 import styles from "./styles";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-function Header({ title, navigation }) {
+function Header({ title, navigation, iconButton, onPressButton }) {
     const openMenu = () => {
         navigation.openDrawer();
     }
@@ -17,7 +17,10 @@ function Header({ title, navigation }) {
                 </TouchableOpacity>
 
                 <Text style={styles.text}>{title}</Text>
-                <FontAwesomeIcon icon={faMagnifyingGlass} size={20} />
+                <TouchableOpacity style={styles.button} onPress={onPressButton}>
+                    <FontAwesomeIcon icon={iconButton} size={20} />
+                </TouchableOpacity>
+
             </View>
         </SafeAreaView>
     );

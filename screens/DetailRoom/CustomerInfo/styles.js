@@ -8,6 +8,17 @@ export default styles = StyleSheet.create({
         paddingRight: 10,
     },
 
+    roomTitle: {
+        alignItems: "center",
+        marginBottom: 10,
+    },
+
+    roomText: {
+        fontSize: 18,
+        fontWeight: "bold",
+        color: "blue",
+    },
+
     searchbar: {
         marginBottom: 10,
     },
