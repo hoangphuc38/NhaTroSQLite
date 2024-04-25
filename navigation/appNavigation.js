@@ -18,11 +18,15 @@ import { AppContext } from "../contexts/appContext";
 import NewCustomer from "../screens/DetailRoom/NewCustomer";
 import LoginScreen from "../screens/Login/LoginScreen";
 import SignupScreen from "../screens/SignUp/SignupScreen";
+import DrawerContent from "../components/DrawerContent";
+import { DrawerActions, useNavigation } from "@react-navigation/native";
 
 const Drawer = createDrawerNavigator();
 const Stack = createNativeStackNavigator();
 
 const StackNavigation = () => {
+    const navigation = useNavigation();
+
     return (
         <Stack.Navigator initialRouteName="Đăng nhập">
             <Stack.Screen
@@ -42,16 +46,17 @@ const StackNavigation = () => {
                 component={ScreenWithDrawer}
                 options={{ headerShown: false }}
             />
+
         </Stack.Navigator>
 
     )
 }
 
 const ScreenWithDrawer = () => {
-    const { roomId, setOpenAddRoom } = useContext(AppContext);
+    const { setOpenAddRoom } = useContext(AppContext);
 
     return (
-        <Drawer.Navigator>
+        <Drawer.Navigator drawerContent={props => <DrawerContent {...props} />}>
             <Drawer.Screen name="Trang chủ"
                 component={HomeScreen}
                 options={({ navigation }) => {

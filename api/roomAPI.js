@@ -1,8 +1,8 @@
 import axiosClient from "./axiosClient";
 
 class RoomAPI {
-    getAll = () => {
-        const url = 'Phong/get-all';
+    getAll = (userId) => {
+        const url = `Phong/get-all?userId=${userId}`;
         return axiosClient.get(url);
     }
 
@@ -11,9 +11,9 @@ class RoomAPI {
         return axiosClient.get(url);
     }
 
-    createNewRoom = (roomName, roomType, roomPrice) => {
-        const url = `Phong/new-phong/?tenPhong=${roomName}&loaiPhong=${roomType}&giaPhong=${roomPrice}`;
-        return axiosClient.post(url, { roomName, roomType, roomPrice })
+    createNewRoom = (userId, roomName, roomType, roomPrice) => {
+        const url = `Phong/new-phong?userID=${userId}&?tenPhong=${roomName}&loaiPhong=${roomType}&giaPhong=${roomPrice}`;
+        return axiosClient.post(url, { userId, roomName, roomType, roomPrice })
     }
 
     deleteRoom = (id) => {

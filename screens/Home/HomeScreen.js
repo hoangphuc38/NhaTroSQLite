@@ -11,6 +11,7 @@ import { AppContext } from "../../contexts/appContext";
 import DialogBox from "../../components/DialogBox";
 
 function HomeScreen({ navigation }) {
+    const { userId, openAddRoom, setOpenAddRoom } = useContext(AppContext);
 
     useEffect(() => {
         fetchAPI();
@@ -18,7 +19,7 @@ function HomeScreen({ navigation }) {
 
     const fetchAPI = async () => {
         try {
-            const response = await roomAPI.getAll();
+            const response = await roomAPI.getAll(userId);
             setRoomData(response);
             setLoading(false);
         }
@@ -27,8 +28,6 @@ function HomeScreen({ navigation }) {
             setLoading(false);
         }
     }
-
-    const { openAddRoom, setOpenAddRoom } = useContext(AppContext);
 
     const [loading, setLoading] = useState(true);
     const [RoomData, setRoomData] = useState([]);

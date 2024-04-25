@@ -1,15 +1,32 @@
 import React, { useState } from "react";
+import { useContext } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { TextInput, Button } from "react-native-paper"
+import { AppContext } from "../../contexts/appContext";
+import authAPI from "../../api/authAPI";
 
 const LoginScreen = props => {
     const [userName, setUserName] = useState("");
     const [password, setPassword] = useState("");
     const [isPressed, setIsPressed] = useState(false);
+    const [showed, setShowed] = useState(true);
+
+    const { setUserId } = useContext(AppContext);
     const { navigation } = props;
 
-    const HandleLogin = () => {
-        navigation.navigate("Home");
+    const HandleLogin = async () => {
+        setIsPressed(true);
+        return await authAPI.login(userName, password)
+            .then((response) => {
+                setUserId(response);
+                setIsPressed(false);
+                navigation.navigate("Home");
+            })
+            .catch((error) => {
+                console.log(error);
+                setIsPressed(false);
+                alert("Sai tài khoản hoặc sai mật khẩu");
+            })
     }
 
     const HandleSignup = () => {
@@ -38,8 +55,12 @@ const LoginScreen = props => {
                         onChangeText={password => setPassword(password)}
                         mode="outlined"
                         outlineStyle={{ borderWidth: 0.5 }}
-                        secureTextEntry
-                        right={<TextInput.Icon icon="eye" />}
+                        secureTextEntry={showed}
+                        right={<TextInput.Icon icon="eye"
+                            onPress={() => {
+                                setShowed(!showed);
+                            }
+                            } />}
                     />
                 </View>
             </View>
