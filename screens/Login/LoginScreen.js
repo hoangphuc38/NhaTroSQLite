@@ -11,14 +11,14 @@ const LoginScreen = props => {
     const [isPressed, setIsPressed] = useState(false);
     const [showed, setShowed] = useState(true);
 
-    const { setUserId } = useContext(AppContext);
+    const { setUserInfo } = useContext(AppContext);
     const { navigation } = props;
 
     const HandleLogin = async () => {
         setIsPressed(true);
         return await authAPI.login(userName, password)
             .then((response) => {
-                setUserId(response);
+                setUserInfo(response);
                 setIsPressed(false);
                 navigation.navigate("Home");
             })

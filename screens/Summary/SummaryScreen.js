@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { ScrollView, StyleSheet, Text, View, FlatList, TextInput } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
 import summaryAPI from "../../api/summaryAPI";
 import { useNavigation } from "@react-navigation/native";
+import { AppContext } from "../../contexts/appContext";
 
 function SummaryScreen() {
     const navigation = useNavigation();
@@ -31,6 +32,8 @@ function SummaryScreen() {
         { label: '2029', value: '2029' },
     ];
 
+    const { userInfo } = useContext(AppContext);
+
     const [month, setMonth] = useState(null);
     const [isFocusMonth, setIsFocusMonth] = useState(false);
     const [year, setYear] = useState(null);
@@ -49,11 +52,15 @@ function SummaryScreen() {
                 setMonth((month.getMonth()).toString());
                 setYear((year.getFullYear()).toString());
 
-                const response = await summaryAPI.getSummary(month.getMonth() + 1, year.getFullYear());
+                const response = await summaryAPI.getSummary(month.getMonth() + 1, year.getFullYear(), userInfo.userId);
                 setData(response.danhSachHoaDon);
                 setElectricTotal(response.tongDien.toString());
                 setWaterTotal(response.tongNuoc.toString());
                 setTotal(response.tongTienTongKet.toString());
+
+                console.log("Điện: ", response.tongDien.toString());
+                console.log("Nước: ", response.tongNuoc.toString())
+                console.log("Phòng: ", response.tongTienTongKet.toString())
                 setLoading(false);
 
             }
@@ -84,11 +91,12 @@ function SummaryScreen() {
     const getSummaryOfMonth = async (monthValue, yearValue) => {
         try {
             setLoading(true);
-            const response = await summaryAPI.getSummary(parseInt(monthValue) + 1, parseInt(yearValue));
+            const response = await summaryAPI.getSummary(parseInt(monthValue) + 1, parseInt(yearValue), userInfo.userId);
             setData(response.danhSachHoaDon);
             setElectricTotal(response.tongDien.toString());
             setWaterTotal(response.tongNuoc.toString());
             setTotal(response.tongTienTongKet.toString());
+
 
             setLoading(false);
         }

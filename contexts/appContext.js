@@ -4,10 +4,10 @@ export const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
     const [openAddRoom, setOpenAddRoom] = useState(false);
-    const [userId, setUserId] = useState('');
+    const [userInfo, setUserInfo] = useState('');
 
     return (
-        <AppContext.Provider value={{ openAddRoom, setOpenAddRoom, userId, setUserId }}>
+        <AppContext.Provider value={{ openAddRoom, setOpenAddRoom, userInfo, setUserInfo }}>
             {children}
         </AppContext.Provider>
     )

@@ -1,8 +1,8 @@
 import axiosClient from "./axiosClient";
 
 class SummaryAPI {
-    getSummary = (month, year) => {
-        const url = `TongKet/get-tongketthang/${month}/${year}`;
+    getSummary = (month, year, userId) => {
+        const url = `TongKet/get-tongketthang/${month}/${year}?UserId=${userId}`;
         return axiosClient.get(url);
     }
 }

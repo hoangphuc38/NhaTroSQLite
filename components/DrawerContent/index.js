@@ -10,7 +10,7 @@ import { AppContext } from '../../contexts/appContext';
 
 function DrawerContent(props) {
     const { navigation } = props;
-    const { setUserId } = useContext(AppContext);
+    const { setUserInfo, userInfo } = useContext(AppContext);
 
     const handleLogout = () => {
         Alert.alert(
@@ -21,7 +21,7 @@ function DrawerContent(props) {
                 {
                     text: "Đăng xuất",
                     onPress: async () => {
-                        setUserId('');
+                        setUserInfo({});
                         navigation.navigate('Đăng nhập');
                     },
                 },
@@ -43,7 +43,7 @@ function DrawerContent(props) {
                                     size={50}
                                 />
                                 <View style={{ marginLeft: 10, flexDirection: 'column' }}>
-                                    <Title style={styles.title}>Adarsh</Title>
+                                    <Title style={styles.title}>{userInfo.name}</Title>
                                 </View>
                             </View>
                         </View>

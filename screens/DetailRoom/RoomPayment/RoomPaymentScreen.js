@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useRef } from "react";
+import React, { useEffect, useState, useMemo, useRef, useContext } from "react";
 import { Modal, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import styles from "./styles";
 import { Dropdown } from "react-native-element-dropdown";
@@ -8,6 +8,7 @@ import billAPI from "../../../api/billAPI";
 import pricetableAPI from "../../../api/pricatableAPI";
 import roomAPI from "../../../api/roomAPI";
 import * as MediaLibrary from 'expo-media-library';
+import { AppContext } from "../../../contexts/appContext";
 
 function RoomPayment({ route }) {
     const MONTH = [
@@ -35,6 +36,7 @@ function RoomPayment({ route }) {
     ];
 
     const { room, roomId } = route.params;
+    const { userInfo } = useContext(AppContext);
     const viewShotRef = useRef();
 
     const [status, requestPermission] = MediaLibrary.usePermissions();
@@ -56,7 +58,7 @@ function RoomPayment({ route }) {
         }
         const fetchTableAPI = async () => {
             try {
-                const data = await pricetableAPI.getAll();
+                const data = await pricetableAPI.getAll(userInfo.userId);
 
                 getPriceTableData(data);
             }
@@ -194,7 +196,7 @@ function RoomPayment({ route }) {
     }, [sumElectricBill, electricPrice])
 
     const totalWaterUpdate = useMemo(() => {
-        if (parseInt(sumWaterBill) < 0 || (parseInt(sumWaterBill) * parseFloat(waterPrice)).toString() === 'NaN') {
+        if (parseInt(sumWaterBill) < 0 || sumWaterBill == '0' || (parseInt(sumWaterBill) * parseFloat(waterPrice)).toString() === 'NaN') {
             return '0';
         }
         else {
@@ -287,6 +289,7 @@ function RoomPayment({ route }) {
 
     const handleCreateBill = async () => {
         return await billAPI.createHoaDonPhong(
+            userInfo.userId,
             parseInt(electricBillLastMonth),
             parseInt(electricBillThisMonth),
             parseInt(sumElectricBill),
@@ -312,6 +315,7 @@ function RoomPayment({ route }) {
 
     const handleUpdateBill = async () => {
         return await billAPI.updateHoaDonPhong(
+            userInfo.userId,
             billId,
             parseInt(electricBillLastMonth),
             parseInt(electricBillThisMonth),
@@ -327,7 +331,8 @@ function RoomPayment({ route }) {
             note,
             roomId
         )
-            .then(() => {
+            .then((response) => {
+                console.log(response)
                 setUpdateForm(true);
             })
             .catch((error) => {
@@ -421,221 +426,221 @@ function RoomPayment({ route }) {
             {
                 loading ? <Text>Đang tải ...</Text>
                     :
-                    <View style={styles.contentWrapper}>
-                        <Text style={styles.roomNumber}>Phòng {room}</Text>
+                    <>
+                        <View style={styles.contentWrapper}>
+                            <Text style={styles.roomNumber}>Phòng {room}</Text>
 
-                        <View style={styles.electricContent}>
-                            <Text style={styles.kindofContent}>1. Điện</Text>
+                            <View style={styles.electricContent}>
+                                <Text style={styles.kindofContent}>1. Điện</Text>
 
-                            <View style={styles.content}>
-                                <Text style={styles.title}>Giá điện (nghìn đồng/kWh):</Text>
-                                <TextInput style={styles.input}
-                                    inputMode="numeric"
-                                    editable={false} value={electricPrice} />
+                                <View style={styles.content}>
+                                    <Text style={styles.title}>Giá điện (nghìn đồng/kWh):</Text>
+                                    <TextInput style={styles.input}
+                                        inputMode="numeric"
+                                        editable={false} value={electricPrice} />
+                                </View>
+
+                                <View style={styles.content}>
+                                    <Text style={styles.title}>Số điện tháng trước:</Text>
+                                    <TextInput style={styles.input}
+                                        inputMode="numeric"
+                                        onChangeText={(e) => setElectricBillLastMonth(e)}
+                                        value={electricBillLastMonth} />
+                                </View>
+
+                                <View style={styles.content}>
+                                    <Text style={styles.title}>Số điện tháng này:</Text>
+                                    <TextInput style={styles.input}
+                                        inputMode="numeric"
+                                        onChangeText={(e) => setElectricBillThisMonth(e)}
+                                        value={electricBillThisMonth}
+                                    />
+                                </View>
+
+                                <View style={styles.content}>
+                                    <Text style={styles.title}>Tổng số điện:</Text>
+                                    <TextInput style={styles.inputSum}
+                                        inputMode="numeric"
+                                        readOnly
+                                        value={handleElectricBillThisMonthChange}
+                                    />
+                                </View>
+
+                                <View style={styles.content}>
+                                    <Text style={styles.title}>Tổng tiền điện (nghìn đồng):</Text>
+                                    <TextInput style={styles.inputSum}
+                                        inputMode="numeric"
+                                        readOnly
+                                        value={totalElectricUpdate}
+                                    />
+                                </View>
                             </View>
 
-                            <View style={styles.content}>
-                                <Text style={styles.title}>Số điện tháng trước:</Text>
-                                <TextInput style={styles.input}
-                                    inputMode="numeric"
-                                    onChangeText={(e) => setElectricBillLastMonth(e)}
-                                    value={electricBillLastMonth} />
+                            <View style={styles.electricContent}>
+                                <Text style={styles.kindofContent}>2. Nước</Text>
+
+                                <View style={styles.content}>
+                                    <Text style={styles.title}>Giá nước (nghìn đồng/khối):</Text>
+                                    <TextInput style={styles.input}
+                                        inputMode="numeric"
+                                        editable={false} value={waterPrice} />
+                                </View>
+
+                                <View style={styles.content}>
+                                    <Text style={styles.title}>Số nước tháng trước:</Text>
+                                    <TextInput style={styles.input}
+                                        inputMode="numeric"
+                                        onChangeText={(e) => setWaterBillLastMonth(e)}
+                                        value={waterBillLastMonth} />
+                                </View>
+
+                                <View style={styles.content}>
+                                    <Text style={styles.title}>Số nước tháng này:</Text>
+                                    <TextInput style={styles.input}
+                                        inputMode="numeric"
+                                        onChangeText={(e) => setWaterBillThisMonth(e)}
+                                        value={waterBillThisMonth}
+                                    />
+                                </View>
+
+                                <View style={styles.content}>
+                                    <Text style={styles.title}>Tổng số nước:</Text>
+                                    <TextInput style={styles.inputSum}
+                                        inputMode="numeric"
+                                        readOnly
+                                        value={handleWaterBillThisMonthChange}
+                                    />
+                                </View>
+
+                                <View style={styles.content}>
+                                    <Text style={styles.title}>Tổng tiền nước (nghìn đồng):</Text>
+                                    <TextInput style={styles.inputSum}
+                                        inputMode="numeric"
+                                        readOnly
+                                        value={totalWaterUpdate}
+                                    />
+                                </View>
                             </View>
 
-                            <View style={styles.content}>
-                                <Text style={styles.title}>Số điện tháng này:</Text>
-                                <TextInput style={styles.input}
-                                    inputMode="numeric"
-                                    onChangeText={(e) => setElectricBillThisMonth(e)}
-                                    value={electricBillThisMonth}
-                                />
+                            <View style={styles.electricContent}>
+                                <Text style={styles.kindofContent}>3. Rác</Text>
+
+                                <View style={styles.content}>
+                                    <Text style={styles.title}>Giá rác (nghìn đồng/tháng):</Text>
+                                    <TextInput style={styles.input}
+                                        inputMode="numeric"
+                                        editable={false} value={rubbishPrice} />
+                                </View>
+
                             </View>
 
-                            <View style={styles.content}>
-                                <Text style={styles.title}>Tổng số điện:</Text>
-                                <TextInput style={styles.inputSum}
-                                    inputMode="numeric"
-                                    readOnly
-                                    value={handleElectricBillThisMonthChange}
-                                />
+                            <View style={styles.electricContent}>
+                                <Text style={styles.kindofContent}>4. Phòng</Text>
+
+                                <View style={styles.content}>
+                                    <Text style={styles.title}>Giá phòng (nghìn đồng/tháng):</Text>
+                                    <TextInput style={styles.input}
+                                        inputMode="numeric"
+                                        editable={false}
+                                        value={roomPrice} />
+                                </View>
+
+                                <View style={styles.content}>
+                                    <Text style={styles.title}>Số ngày ở (bình thường thì ghi 30):</Text>
+                                    <TextInput style={styles.input}
+                                        inputMode="numeric"
+                                        onChangeText={(e) => setLivingTime(e)}
+                                        value={livingTime}
+                                    />
+                                </View>
+
+                                <View style={styles.content}>
+                                    <Text style={styles.title}>Tổng tiền phòng (nghìn đồng):</Text>
+                                    <TextInput style={styles.inputSum}
+                                        inputMode="numeric"
+                                        readOnly
+                                        value={totalRoomUpdate}
+                                    />
+                                </View>
+
                             </View>
 
-                            <View style={styles.content}>
-                                <Text style={styles.title}>Tổng tiền điện (nghìn đồng):</Text>
-                                <TextInput style={styles.inputSum}
-                                    inputMode="numeric"
-                                    readOnly
-                                    value={totalElectricUpdate}
-                                />
+                            <View style={styles.electricContent}>
+                                <Text style={styles.kindofContent}>Tổng cộng</Text>
+
+                                <View style={styles.contentSum}>
+                                    <Text style={styles.title}>Tiền trọ tháng này:</Text>
+
+                                    <TextInput style={styles.inputFinal}
+                                        inputMode="numeric"
+                                        readOnly
+                                        value={totalBillUpdate === "NaN" ? "0" : totalBillUpdate} />
+
+                                </View>
+
                             </View>
+
+                            <View style={styles.electricContent}>
+                                <Text style={styles.kindofContent}>Ghi chú</Text>
+
+                                <View style={styles.contentSum}>
+                                    <TextInput style={styles.inputNote}
+                                        onChangeText={(e) => setNote(e)}
+                                        value={note} />
+
+                                </View>
+
+                            </View>
+
                         </View>
+                        <View style={styles.buttons}>
+                            <Button title="Thay đổi bảng giá"
+                                titleStyle={{ fontWeight: 'bold', fontSize: 14 }}
+                                buttonStyle={{
+                                    backgroundColor: 'rgba(199, 43, 98, 1)',
+                                    borderColor: 'transparent',
+                                    borderWidth: 0,
+                                    borderRadius: 30,
+                                }}
+                                containerStyle={{
+                                    width: "auto",
+                                    marginBottom: 15,
+                                }}
+                                onPress={() => setModalVisible(true)} />
 
-                        <View style={styles.electricContent}>
-                            <Text style={styles.kindofContent}>2. Nước</Text>
-
-                            <View style={styles.content}>
-                                <Text style={styles.title}>Giá nước (nghìn đồng/khối):</Text>
-                                <TextInput style={styles.input}
-                                    inputMode="numeric"
-                                    editable={false} value={waterPrice} />
-                            </View>
-
-                            <View style={styles.content}>
-                                <Text style={styles.title}>Số nước tháng trước:</Text>
-                                <TextInput style={styles.input}
-                                    inputMode="numeric"
-                                    onChangeText={(e) => setWaterBillLastMonth(e)}
-                                    value={waterBillLastMonth} />
-                            </View>
-
-                            <View style={styles.content}>
-                                <Text style={styles.title}>Số nước tháng này:</Text>
-                                <TextInput style={styles.input}
-                                    inputMode="numeric"
-                                    onChangeText={(e) => setWaterBillThisMonth(e)}
-                                    value={waterBillThisMonth}
-                                />
-                            </View>
-
-                            <View style={styles.content}>
-                                <Text style={styles.title}>Tổng số nước:</Text>
-                                <TextInput style={styles.inputSum}
-                                    inputMode="numeric"
-                                    readOnly
-                                    value={handleWaterBillThisMonthChange}
-                                />
-                            </View>
-
-                            <View style={styles.content}>
-                                <Text style={styles.title}>Tổng tiền nước (nghìn đồng):</Text>
-                                <TextInput style={styles.inputSum}
-                                    inputMode="numeric"
-                                    readOnly
-                                    value={totalWaterUpdate}
-                                />
-                            </View>
+                            {
+                                hasBill
+                                    ? <Button title="Chỉnh sửa hóa đơn"
+                                        titleStyle={{ fontWeight: 'bold', fontSize: 14 }}
+                                        buttonStyle={{
+                                            backgroundColor: 'blue',
+                                            borderColor: 'transparent',
+                                            borderWidth: 0,
+                                            borderRadius: 30,
+                                        }}
+                                        containerStyle={{
+                                            width: "auto",
+                                            marginBottom: 15,
+                                        }}
+                                        onPress={handleUpdateBill} />
+                                    : <Button title="Thêm hóa đơn"
+                                        titleStyle={{ fontWeight: 'bold', fontSize: 14 }}
+                                        buttonStyle={{
+                                            backgroundColor: 'blue',
+                                            borderColor: 'transparent',
+                                            borderWidth: 0,
+                                            borderRadius: 30,
+                                        }}
+                                        containerStyle={{
+                                            width: "auto",
+                                            marginBottom: 15,
+                                        }}
+                                        onPress={handleCreateBill} />
+                            }
                         </View>
+                    </>
 
-                        <View style={styles.electricContent}>
-                            <Text style={styles.kindofContent}>3. Rác</Text>
-
-                            <View style={styles.content}>
-                                <Text style={styles.title}>Giá rác (nghìn đồng/tháng):</Text>
-                                <TextInput style={styles.input}
-                                    inputMode="numeric"
-                                    editable={false} value={rubbishPrice} />
-                            </View>
-
-                        </View>
-
-                        <View style={styles.electricContent}>
-                            <Text style={styles.kindofContent}>4. Phòng</Text>
-
-                            <View style={styles.content}>
-                                <Text style={styles.title}>Giá phòng (nghìn đồng/tháng):</Text>
-                                <TextInput style={styles.input}
-                                    inputMode="numeric"
-                                    editable={false}
-                                    value={roomPrice} />
-                            </View>
-
-                            <View style={styles.content}>
-                                <Text style={styles.title}>Số ngày ở (bình thường thì ghi 30):</Text>
-                                <TextInput style={styles.input}
-                                    inputMode="numeric"
-                                    onChangeText={(e) => setLivingTime(e)}
-                                    value={livingTime}
-                                />
-                            </View>
-
-                            <View style={styles.content}>
-                                <Text style={styles.title}>Tổng tiền phòng (nghìn đồng):</Text>
-                                <TextInput style={styles.inputSum}
-                                    inputMode="numeric"
-                                    readOnly
-                                    value={totalRoomUpdate}
-                                />
-                            </View>
-
-                        </View>
-
-                        <View style={styles.electricContent}>
-                            <Text style={styles.kindofContent}>Tổng cộng</Text>
-
-                            <View style={styles.contentSum}>
-                                <Text style={styles.title}>Tiền trọ tháng này:</Text>
-
-                                <TextInput style={styles.inputFinal}
-                                    inputMode="numeric"
-                                    readOnly
-                                    value={totalBillUpdate === "NaN" ? "0" : totalBillUpdate} />
-
-                            </View>
-
-                        </View>
-
-                        <View style={styles.electricContent}>
-                            <Text style={styles.kindofContent}>Ghi chú</Text>
-
-                            <View style={styles.contentSum}>
-                                <TextInput style={styles.inputNote}
-                                    onChangeText={(e) => setNote(e)}
-                                    value={note} />
-
-                            </View>
-
-                        </View>
-
-                    </View>
             }
-
-            <View style={styles.buttons}>
-                <Button title="Thay đổi bảng giá"
-                    titleStyle={{ fontWeight: 'bold', fontSize: 14 }}
-                    buttonStyle={{
-                        backgroundColor: 'rgba(199, 43, 98, 1)',
-                        borderColor: 'transparent',
-                        borderWidth: 0,
-                        borderRadius: 30,
-                    }}
-                    containerStyle={{
-                        width: "auto",
-                        marginBottom: 15,
-                    }}
-                    onPress={() => setModalVisible(true)} />
-
-                {
-                    hasBill
-                        ? <Button title="Chỉnh sửa hóa đơn"
-                            titleStyle={{ fontWeight: 'bold', fontSize: 14 }}
-                            buttonStyle={{
-                                backgroundColor: 'blue',
-                                borderColor: 'transparent',
-                                borderWidth: 0,
-                                borderRadius: 30,
-                            }}
-                            containerStyle={{
-                                width: "auto",
-                                marginBottom: 15,
-                            }}
-                            onPress={handleUpdateBill} />
-                        : <Button title="Thêm hóa đơn"
-                            titleStyle={{ fontWeight: 'bold', fontSize: 14 }}
-                            buttonStyle={{
-                                backgroundColor: 'blue',
-                                borderColor: 'transparent',
-                                borderWidth: 0,
-                                borderRadius: 30,
-                            }}
-                            containerStyle={{
-                                width: "auto",
-                                marginBottom: 15,
-                            }}
-                            onPress={handleCreateBill} />
-                }
-
-
-            </View>
 
             <Modal
                 animationType="fade"

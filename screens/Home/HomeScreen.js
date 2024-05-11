@@ -11,7 +11,7 @@ import { AppContext } from "../../contexts/appContext";
 import DialogBox from "../../components/DialogBox";
 
 function HomeScreen({ navigation }) {
-    const { userId, openAddRoom, setOpenAddRoom } = useContext(AppContext);
+    const { userInfo, openAddRoom, setOpenAddRoom } = useContext(AppContext);
 
     useEffect(() => {
         fetchAPI();
@@ -19,7 +19,7 @@ function HomeScreen({ navigation }) {
 
     const fetchAPI = async () => {
         try {
-            const response = await roomAPI.getAll(userId);
+            const response = await roomAPI.getAll(userInfo.userId);
             setRoomData(response);
             setLoading(false);
         }
@@ -49,7 +49,7 @@ function HomeScreen({ navigation }) {
     }
 
     const HandleNewRoom = async () => {
-        return await roomAPI.createNewRoom(newName, newType, newPrice)
+        return await roomAPI.createNewRoom(userInfo.userId, newName, newType, newPrice)
             .then(() => {
                 setRoomType("1");
                 setNewName("");

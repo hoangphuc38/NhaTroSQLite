@@ -1,12 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { FlatList, Modal, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import pricetableAPI from "../../api/pricatableAPI";
+import { AppContext } from "../../contexts/appContext";
 
 function PriceTableScreen() {
+    const { userInfo } = useContext(AppContext);
+
     useEffect(() => {
         const fetchAPI = async () => {
             try {
-                const response = await pricetableAPI.getAll();
+                const response = await pricetableAPI.getAll(userInfo.userId);
                 console.log("Success: ", response);
                 setData(response);
 
@@ -31,6 +34,7 @@ function PriceTableScreen() {
     const [data, setData] = useState({});
 
     const [modalVisible, setModalVisible] = useState(false);
+    const [addModalVisible, setAddModalVisible] = useState(false);
     const [roomKiotPrice, setRoomKiotPrice] = useState('');
     const [roomOrdinaryPrice, setRoomOrdinaryPrice] = useState('');
     const [electricPrice, setElectricPrice] = useState('');
@@ -68,11 +72,19 @@ function PriceTableScreen() {
 
             </View>
 
-            <Pressable
-                style={[styles.button, styles.buttonUpdate]}
-                onPress={() => setModalVisible(!modalVisible)}>
-                <Text style={styles.textBtn}>Cập nhật</Text>
-            </Pressable>
+            <View style={{ flexDirection: "row-reverse", gap: 10 }}>
+                <Pressable
+                    style={[styles.button, styles.buttonUpdate]}
+                    onPress={() => setModalVisible(!modalVisible)}>
+                    <Text style={styles.textBtn}>Cập nhật</Text>
+                </Pressable>
+
+                <Pressable
+                    style={[styles.button, styles.buttonSave]}
+                    onPress={() => setAddModalVisible(!addModalVisible)}>
+                    <Text style={styles.textBtn}>Thêm hạng mục</Text>
+                </Pressable>
+            </View>
 
             <Modal
                 animationType="fade"
@@ -119,6 +131,58 @@ function PriceTableScreen() {
                                         value={rubbishPrice} />
                                 </View>
 
+                            </View>
+
+                            <View style={styles.buttonModal}>
+                                <Pressable
+                                    style={[styles.button, styles.buttonClose]}
+                                    onPress={() => setModalVisible(!modalVisible)}>
+                                    <Text style={styles.textBtn}>Thoát</Text>
+                                </Pressable>
+
+                                <Pressable
+                                    style={[styles.button, styles.buttonSave]}
+                                    onPress={() => setModalVisible(!modalVisible)}>
+                                    <Text style={styles.textBtn}>Lưu</Text>
+                                </Pressable>
+                            </View>
+
+                        </View>
+                    </View>
+                </View>
+
+            </Modal>
+
+            <Modal
+                animationType="fade"
+                transparent={true}
+                visible={addModalVisible}
+                onRequestClose={() => setAddModalVisible(!addModalVisible)}
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.modal}>
+                        <View style={styles.modalContent}>
+                            <View style={styles.electricContent}>
+                                <View style={{ gap: 10, marginBottom: 10 }}>
+                                    <Text style={styles.title}>Hạng mục:</Text>
+                                    <TextInput style={styles.inputAddModal}
+                                        inputMode="numeric"
+                                        value={roomKiotPrice} />
+                                </View>
+
+                                <View style={{ gap: 10, marginBottom: 15 }}>
+                                    <Text style={styles.title}>Giá:</Text>
+                                    <TextInput style={styles.inputAddModal}
+                                        inputMode="numeric"
+                                        value={roomKiotPrice} />
+                                </View>
+
+                                <View style={{ gap: 10, marginBottom: 15 }}>
+                                    <Text style={styles.title}>Đơn vị:</Text>
+                                    <TextInput style={styles.inputAddModal}
+                                        inputMode="numeric"
+                                        value={roomKiotPrice} />
+                                </View>
                             </View>
 
                             <View style={styles.buttonModal}>
@@ -277,6 +341,17 @@ const styles = StyleSheet.create({
         backgroundColor: "white",
         borderRadius: 10,
         width: 100,
+        paddingHorizontal: 10,
+        paddingVertical: 2,
+        fontSize: 14,
+        borderColor: 'gray',
+        borderWidth: 1
+    },
+
+    inputAddModal: {
+        backgroundColor: "white",
+        borderRadius: 10,
+        width: "100%",
         paddingHorizontal: 10,
         paddingVertical: 2,
         fontSize: 14,
