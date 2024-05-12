@@ -188,13 +188,13 @@ function PriceTableScreen() {
                             <View style={styles.buttonModal}>
                                 <Pressable
                                     style={[styles.button, styles.buttonClose]}
-                                    onPress={() => setModalVisible(!modalVisible)}>
+                                    onPress={() => setAddModalVisible(!modalVisible)}>
                                     <Text style={styles.textBtn}>Thoát</Text>
                                 </Pressable>
 
                                 <Pressable
                                     style={[styles.button, styles.buttonSave]}
-                                    onPress={() => setModalVisible(!modalVisible)}>
+                                    onPress={() => setAddModalVisible(!modalVisible)}>
                                     <Text style={styles.textBtn}>Lưu</Text>
                                 </Pressable>
                             </View>

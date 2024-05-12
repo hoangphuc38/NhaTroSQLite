@@ -11,7 +11,7 @@ import { AppContext } from "../../contexts/appContext";
 import DialogBox from "../../components/DialogBox";
 
 function HomeScreen({ navigation }) {
-    const { userInfo, openAddRoom, setOpenAddRoom } = useContext(AppContext);
+    const { userInfo, openAddRoom, setOpenAddRoom, setRoomID } = useContext(AppContext);
 
     useEffect(() => {
         fetchAPI();
@@ -33,6 +33,7 @@ function HomeScreen({ navigation }) {
     const [RoomData, setRoomData] = useState([]);
     const [modalVisible, setModalVisible] = useState(false);
     const [modalDelete, setModalDelete] = useState(false);
+    const [modalInfoRoom, setModalInfoRoom] = useState(false);
     const [roomType, setRoomType] = useState("");
     const [roomNumber, setRoomNumber] = useState("");
     const [roomId, setRoomId] = useState("");
@@ -41,11 +42,21 @@ function HomeScreen({ navigation }) {
     const [newName, setNewName] = useState("");
     const [newPrice, setNewPrice] = useState("");
 
+    const [roomNameUpdate, setRoomNameUpdate] = useState("");
+    const [roomTypeUpdate, setRoomTypeUpdate] = useState(1);
+    const [roomPriceUpdate, setRoomPriceUpdate] = useState("");
+
+
     const ShowRoomInfo = (item) => {
         setModalVisible(true);
         setRoomType(item.loaiPhong);
         setRoomNumber(item.tenPhong);
         setRoomId(item.id);
+        setRoomID(item.id);
+
+        setRoomNameUpdate(item.tenPhong);
+        setRoomTypeUpdate(item.loaiPhong);
+        setRoomPriceUpdate(item.giaPhong.toString());
     }
 
     const HandleNewRoom = async () => {
@@ -66,9 +77,32 @@ function HomeScreen({ navigation }) {
             })
     }
 
+    const HandleUpdateRoom = async () => {
+        return await roomAPI.updateRoom(roomId, roomNameUpdate, roomTypeUpdate, parseFloat(roomPriceUpdate))
+            .then(() => {
+                setRoomNameUpdate("");
+                setRoomTypeUpdate(1);
+                setRoomPriceUpdate("");
+                setModalInfoRoom(false);
+                alert("Cập nhật thành công");
+                setLoading(true);
+                fetchAPI();
+            })
+            .catch((error) => {
+                console.log(error);
+                setLoading(false);
+                alert("Cập nhật thất bại");
+            })
+    }
+
     const OpenDeleteForm = () => {
         setModalVisible(false);
         setModalDelete(true);
+    }
+
+    const OpenInfoRoom = () => {
+        setModalVisible(false);
+        setModalInfoRoom(true);
     }
 
     const HandleDeleteRoom = async (id) => {
@@ -169,6 +203,72 @@ function HomeScreen({ navigation }) {
                 </View>
             </Modal>
 
+            <Modal
+                animationType="fade"
+                transparent={true}
+                visible={modalInfoRoom}
+                onRequestClose={() => setModalInfoRoom(!modalInfoRoom)}
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalAddRoom}>
+                        <View style={styles.modalContent}>
+                            <View style={styles.titleModal}>
+                                <Text style={styles.modalText}>Thông tin phòng</Text>
+                            </View>
+
+                            <View style={styles.inputWrapper}>
+                                <Text style={styles.titleInput}>Tên/Số phòng:</Text>
+                                <TextInput style={styles.contentInput}
+                                    onChangeText={(e) => setRoomNameUpdate(e)}
+                                    value={roomNameUpdate} />
+                            </View>
+
+                            <View style={styles.inputWrapper}>
+                                <Text style={styles.titleInput}>Loại phòng:</Text>
+                                <RadioButton.Group
+                                    onValueChange={newValue => setRoomTypeUpdate(newValue)}
+                                    value={roomTypeUpdate}>
+                                    <View style={styles.radioContainer}>
+                                        <View style={styles.radiobutton}>
+                                            <RadioButton value={1} />
+                                            <Text>Phòng trọ</Text>
+
+                                        </View>
+                                        <View style={styles.radiobutton}>
+                                            <RadioButton value={2} />
+                                            <Text>Ki-ốt</Text>
+                                        </View>
+                                    </View>
+                                </RadioButton.Group>
+
+                            </View>
+
+                            <View style={styles.inputWrapper}>
+                                <Text style={styles.titleInput}>Giá phòng (nghìn đồng):</Text>
+                                <TextInput style={styles.contentInput}
+                                    inputMode="numeric"
+                                    onChangeText={(e) => setRoomPriceUpdate(e)}
+                                    value={roomPriceUpdate} />
+                            </View>
+
+                            <View style={styles.buttons}>
+                                <Pressable
+                                    style={[styles.buttonAdd, styles.buttonClose]}
+                                    onPress={() => setModalInfoRoom(!modalInfoRoom)}>
+                                    <Text style={styles.textBtn}>Thoát</Text>
+                                </Pressable>
+
+                                <Pressable
+                                    style={[styles.buttonAdd, styles.buttonSubmit]}
+                                    onPress={HandleUpdateRoom}>
+                                    <Text style={styles.textBtn}>Cập nhật</Text>
+                                </Pressable>
+                            </View>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+
             {
                 loading ? <Text>Đang tải</Text>
                     :
@@ -202,6 +302,13 @@ function HomeScreen({ navigation }) {
                             </View>
 
                             <View style={styles.content}>
+                                <TouchableOpacity style={styles.contentWrapper}
+                                    onPress={OpenInfoRoom}
+                                >
+                                    <Text style={styles.textContent}>Thông tin phòng</Text>
+                                    <FontAwesomeIcon icon={faChevronRight} size={18} />
+                                </TouchableOpacity>
+
                                 <TouchableOpacity style={styles.contentWrapper}
                                     onPress={() => {
                                         navigation.navigate('Chi tiết', {

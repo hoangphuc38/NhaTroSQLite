@@ -3,10 +3,6 @@ import { Image, View, Text, Button } from "react-native";
 import styles from './styles';
 
 function CustomerCard({ name, datebirth, male, noidangkyHoKhau, numberCard, job, numberRoom, ngayDi, daChuyen }) {
-    const openGallery = () => {
-
-    }
-
     return (
         <View style={styles.card}>
             <View style={styles.leftContent}>
@@ -16,10 +12,6 @@ function CustomerCard({ name, datebirth, male, noidangkyHoKhau, numberCard, job,
                         source={require('../../assets/images/defaultuser.png')}
                     />
                 </View>
-                <Button
-                    title="Tải ảnh"
-                    onPress={openGallery}
-                />
             </View>
 
             <View style={styles.rightContent}>

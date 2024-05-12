@@ -6,7 +6,6 @@ import { SearchBar } from '@rneui/themed/dist/SearchBar';
 import customerAPI from "../../../api/customerAPI";
 
 function CustomerInfoScreen({ route }) {
-
     const { room, roomId } = route.params;
 
     useEffect(() => {
@@ -32,24 +31,28 @@ function CustomerInfoScreen({ route }) {
 
     return (
         <View style={styles.container}>
-            <View style={styles.roomTitle}>
-                <Text style={styles.roomText}>Phòng {room}</Text>
-            </View>
-
-            <View style={styles.searchbar}>
-                <SearchBar
-                    placeholder="Tìm kiếm người ở"
-                    onChangeText={(e) => setSearchValue(e)}
-                    value={searchValue}
-                    lightTheme={true}
-                    containerStyle={styles.containerSearchBar}
-                    inputContainerStyle={styles.inputContainer}
-                    inputStyle={styles.inputText}
-                />
-            </View>
-
             <View style={styles.listcontainer}>
                 <FlatList
+                    showsVerticalScrollIndicator={false}
+                    ListHeaderComponent={
+                        <>
+                            <View style={styles.roomTitle}>
+                                <Text style={styles.roomText}>Phòng {room}</Text>
+                            </View>
+
+                            <View style={styles.searchbar}>
+                                <SearchBar
+                                    placeholder="Tìm kiếm người ở"
+                                    onChangeText={(e) => setSearchValue(e)}
+                                    value={searchValue}
+                                    lightTheme={true}
+                                    containerStyle={styles.containerSearchBar}
+                                    inputContainerStyle={styles.inputContainer}
+                                    inputStyle={styles.inputText}
+                                />
+                            </View>
+                        </>
+                    }
                     data={userList}
                     renderItem={
                         ({ item }) => <CustomerCard

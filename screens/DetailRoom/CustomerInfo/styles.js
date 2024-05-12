@@ -30,15 +30,17 @@ export default styles = StyleSheet.create({
     containerSearchBar: {
         backgroundColor: "transparent",
         borderColor: "transparent",
+        paddingHorizontal: 0
     },
 
     inputContainer: {
         borderRadius: 20,
-        backgroundColor: "white",
+        backgroundColor: "white"
     },
 
     inputText: {
         fontSize: 16,
+        marginLeft: 0,
     }
 
 })

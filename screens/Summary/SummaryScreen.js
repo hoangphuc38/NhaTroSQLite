@@ -192,6 +192,7 @@ function SummaryScreen() {
 
                         <View style={styles.list}>
                             <FlatList
+                                showsVerticalScrollIndicator={false}
                                 data={data}
                                 keyExtractor={item => item.id}
                                 renderItem={({ item, index }) => renderItem(item, index)}

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useContext } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, Text, View } from "react-native";
 import { TextInput, Button } from "react-native-paper"
 import { AppContext } from "../../contexts/appContext";
 import authAPI from "../../api/authAPI";
@@ -35,6 +35,10 @@ const LoginScreen = props => {
 
     return (
         <View style={styles.container}>
+            <Image
+                source={require('../../images/circle_logo_with_a_house_and_blue_color.png')}
+                style={{ width: 200, height: 200, borderRadius: 30., marginBottom: 10, marginTop: -40 }}
+            />
             <Text style={styles.loginText}>NhaTroApp</Text>
 
             <View style={styles.loginWrapper}>

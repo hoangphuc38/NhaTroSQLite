@@ -1,15 +1,44 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import styles from "./styles";
 import { View, Text, ScrollView, Pressable } from "react-native";
 import { Avatar, RadioButton, TextInput } from "react-native-paper";
+import customerAPI from "../../../api/customerAPI";
+import { AppContext } from "../../../contexts/appContext";
 
-function NewCustomer({ route }) {
+function NewCustomer({ navigation }) {
+    const { roomID } = useContext(AppContext);
+
+    const [avatar, setAvatar] = useState("");
     const [hoTen, setHoTen] = useState("");
     const [namSinh, setNamSinh] = useState("");
     const [isNam, setIsNam] = useState(true);
     const [noiDangKyHoKhau, setNoiDangKyHoKhau] = useState("");
     const [cccd, setCCCD] = useState("");
     const [ngheNghiep, setNgheNghiep] = useState("");
+
+    const HandleUploadImage = () => {
+        alert("Hiện tại chưa có tính năng tải ảnh");
+    }
+
+    const HandleAddNew = async () => {
+        return await customerAPI.newPerson(
+            avatar,
+            hoTen,
+            namSinh,
+            isNam,
+            noiDangKyHoKhau,
+            cccd,
+            ngheNghiep,
+            roomID)
+            .then(() => {
+                alert("Thêm người ở thành công");
+                navigation.goBack();
+            })
+            .catch((error) => {
+                console.log(error);
+                alert("Thêm người ở thất bại");
+            })
+    }
 
     return (
         <ScrollView style={styles.container}>
@@ -20,6 +49,7 @@ function NewCustomer({ route }) {
                     />
                 </View>
                 <Pressable
+                    onPress={HandleUploadImage}
                     style={[styles.button, styles.buttonSave]}>
                     <Text style={styles.textBtn}>Tải ảnh lên</Text>
                 </Pressable>
@@ -91,6 +121,20 @@ function NewCustomer({ route }) {
                     activeOutlineColor="red"
                     outlineStyle={{ borderWidth: 0.5 }}
                 />
+            </View>
+
+            <View style={styles.buttons}>
+                <Pressable style={[styles.buttonBottom, styles.buttonClose]}
+                    onPress={() => navigation.goBack()}
+                >
+                    <Text style={styles.textBtn}>Hủy</Text>
+                </Pressable>
+
+                <Pressable style={[styles.buttonBottom, styles.buttonSave]}
+                    onPress={HandleAddNew}
+                >
+                    <Text style={styles.textBtn}>Lưu</Text>
+                </Pressable>
             </View>
         </ScrollView>
     )

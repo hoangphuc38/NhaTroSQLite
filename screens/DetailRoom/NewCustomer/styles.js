@@ -54,4 +54,27 @@ export default styles = StyleSheet.create({
         alignItems: "center"
     },
 
+    buttons: {
+        flexDirection: "row",
+        justifyContent: "flex-end",
+        gap: 10,
+        marginVertical: 15
+    },
+
+    buttonBottom: {
+        borderRadius: 10,
+        padding: 5,
+        elevation: 2,
+        width: 100,
+        alignSelf: "flex-end",
+    },
+
+    buttonClose: {
+        backgroundColor: "red",
+    },
+
+    buttonSave: {
+        backgroundColor: '#2196F3',
+    },
+
 })

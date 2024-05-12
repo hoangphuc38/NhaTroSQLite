@@ -95,7 +95,7 @@ const ScreenWithDrawer = () => {
                             navigation={navigation}
                             iconButton={faPlus}
                             onPressButton={
-                                () => navigation.navigate('Thêm người ở')
+                                () => navigation.navigate("Thêm người ở")
                             }
                         />,
                         drawerItemStyle: { height: 0 }
