@@ -1,0 +1,57 @@
+sqlite3 NhaTroDB.db 
+
+CREATE TABLE IF NOT EXISTS TaiKhoan (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL,
+    password TEXT NOT NULL,
+    name TEXT
+);
+
+CREATE TABLE IF NOT EXISTS Phong (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER,
+    tenphong TEXT,
+    loaiphong INTEGER NOT NULL,
+    giaphong REAL NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES TaiKhoan (id)
+);
+
+CREATE TABLE IF NOT EXISTS TongKetThang (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER,
+    ngaytongket DATETIME DEFAULT CURRENT_TIMESTAMP,
+    tongdien REAL NOT NULL,
+    tongnuoc REAL NOT NULL,
+    tongtientongket REAL NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES TaiKhoan (id)
+);
+
+CREATE TABLE IF NOT EXISTS HoaDonPhong (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    phong_id INTEGER,
+    tongket_id INTEGER,
+    ngayhoadon DATETIME DEFAULT CURRENT_TIMESTAMP,
+    sodienthangtruoc REAL NOT NULL,
+    sodienthangnay REAL NOT NULL,
+    tongsodien REAL NOT NULL,
+    tonggiadien REAL NOT NULL,
+    sonuocthangtruoc REAL NOT NULL,
+    sonuocthangnay REAL NOT NULL,
+    tongsonuoc REAL NOT NULL,
+    tonggianuoc REAL NOT NULL,
+    songayo REAL NOT NULL,
+    tongtienphong REAL NOT NULL,
+    tonghoadon REAL NOT NULL,
+    ghichu TEXT,
+    FOREIGN KEY (phong_id) REFERENCES Phong (id),
+    FOREIGN KEY (tongket_id) REFERENCES TongKetThang (id)
+);
+
+CREATE TABLE IF NOT EXISTS BangGia (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER,
+    hangmuc TEXT,
+    donvi TEXT,
+    gia REAL NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES TaiKhoan (id)
+)
