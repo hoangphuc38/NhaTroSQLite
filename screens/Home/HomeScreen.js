@@ -9,22 +9,30 @@ import roomAPI from "../../api/roomAPI";
 import { RadioButton } from "react-native-paper";
 import { AppContext } from "../../contexts/appContext";
 import DialogBox from "../../components/DialogBox";
+import { ActivityIndicator } from "react-native";
+import { useSQLiteContext } from "expo-sqlite";
 
 function HomeScreen({ navigation }) {
     const { userInfo, openAddRoom, setOpenAddRoom, setRoomID } = useContext(AppContext);
+    const db = useSQLiteContext();
 
     useEffect(() => {
-        fetchAPI();
-    }, [])
+        db.withTransactionAsync(async () => {
+            getData();
+        });
+    }, [db])
 
-    const fetchAPI = async () => {
+    const getData = async () => {
         try {
-            const response = await roomAPI.getAll(userInfo.userId);
-            setRoomData(response);
+            const result = await db.getAllAsync(
+                'SELECT * FROM Phong WHERE user_id = ? ORDER BY tenphong ASC',
+                [userInfo.id]
+            );
+            setRoomData(result);
             setLoading(false);
         }
         catch (error) {
-            console.log("Xảy ra lỗi: ", error);
+            console.log("Err: ", error);
             setLoading(false);
         }
     }
@@ -49,50 +57,60 @@ function HomeScreen({ navigation }) {
 
     const ShowRoomInfo = (item) => {
         setModalVisible(true);
-        setRoomType(item.loaiPhong);
-        setRoomNumber(item.tenPhong);
+        setRoomType(item.loaiphong);
+        setRoomNumber(item.tenphong);
         setRoomId(item.id);
         setRoomID(item.id);
 
-        setRoomNameUpdate(item.tenPhong);
-        setRoomTypeUpdate(item.loaiPhong);
-        setRoomPriceUpdate(item.giaPhong.toString());
+        setRoomNameUpdate(item.tenphong);
+        setRoomTypeUpdate(item.loaiphong);
+        setRoomPriceUpdate(item.giaphong.toString());
     }
 
     const HandleNewRoom = async () => {
-        return await roomAPI.createNewRoom(userInfo.userId, newName, newType, newPrice)
-            .then(() => {
-                setRoomType("1");
-                setNewName("");
-                setNewPrice("");
-                setOpenAddRoom(false);
-                alert("Thêm phòng thành công");
-                setLoading(true);
-                fetchAPI();
+        try {
+            const result = await db.withTransactionAsync(async () => {
+                await db.runAsync(
+                    'INSERT INTO Phong (user_id, tenphong, loaiphong, giaphong) VALUES (?, ?, ?, ?)',
+                    [userInfo.id, newName, newType, newPrice]
+                )
+                getData();
             })
-            .catch((error) => {
-                console.log(error);
-                setLoading(false);
-                alert("Thêm phòng thất bại");
-            })
+            setRoomType("1");
+            setNewName("");
+            setNewPrice("");
+            setOpenAddRoom(false);
+            alert("Thêm phòng thành công");
+            setLoading(true);
+        }
+        catch (error) {
+            console.log(error);
+            setLoading(false);
+            alert("Thêm phòng thất bại");
+        }
     }
 
     const HandleUpdateRoom = async () => {
-        return await roomAPI.updateRoom(roomId, roomNameUpdate, roomTypeUpdate, parseFloat(roomPriceUpdate))
-            .then(() => {
-                setRoomNameUpdate("");
-                setRoomTypeUpdate(1);
-                setRoomPriceUpdate("");
-                setModalInfoRoom(false);
-                alert("Cập nhật thành công");
-                setLoading(true);
-                fetchAPI();
+        try {
+            const result = await db.withTransactionAsync(async () => {
+                await db.runAsync(
+                    'UPDATE Phong SET tenphong = ?, loaiphong = ?, giaphong = ? WHERE id = ?',
+                    [roomNameUpdate, roomTypeUpdate, parseFloat(roomPriceUpdate), roomId]
+                )
+                getData();
             })
-            .catch((error) => {
-                console.log(error);
-                setLoading(false);
-                alert("Cập nhật thất bại");
-            })
+            setRoomNameUpdate("");
+            setRoomTypeUpdate(1);
+            setRoomPriceUpdate("");
+            setModalInfoRoom(false);
+            alert("Cập nhật thành công");
+            setLoading(true);
+        }
+        catch (error) {
+            console.log(error);
+            setLoading(false);
+            alert("Cập nhật thất bại");
+        }
     }
 
     const OpenDeleteForm = () => {
@@ -106,19 +124,24 @@ function HomeScreen({ navigation }) {
     }
 
     const HandleDeleteRoom = async (id) => {
-        return await roomAPI.deleteRoom(id)
-            .then(() => {
-                alert("Xóa phòng thành công");
-                setModalDelete(false);
-                setLoading(true);
-                fetchAPI();
+        try {
+            const result = await db.withTransactionAsync(async () => {
+                await db.runAsync(
+                    'DELETE FROM Phong WHERE id = ?',
+                    [id]
+                )
+                getData();
             })
-            .catch((error) => {
-                console.log(error);
-                setLoading(false);
-                setModalDelete(false);
-                alert("Xóa phòng thất bại");
-            })
+            alert("Xóa phòng thành công");
+            setModalDelete(false);
+            setLoading(true);
+        }
+        catch (error) {
+            console.log(error);
+            setLoading(false);
+            setModalDelete(false);
+            alert("Xóa phòng thất bại");
+        }
     }
 
     return (
@@ -270,7 +293,7 @@ function HomeScreen({ navigation }) {
             </Modal>
 
             {
-                loading ? <Text>Đang tải</Text>
+                loading ? <ActivityIndicator style={{ justifyContent: "center" }} color={"red"} size={"small"} />
                     :
                     <FlatList
                         style={styles.list}
@@ -279,8 +302,7 @@ function HomeScreen({ navigation }) {
                         numColumns={2}
                         data={RoomData}
                         renderItem={
-                            ({ item }) => <Room numberRoom={item.tenPhong}
-                                isEmpty={item.danhSachNguoi.length > 0 ? true : false}
+                            ({ item }) => <Room numberRoom={item.tenphong}
                                 onPress={() => ShowRoomInfo(item)} />
                         }
                         keyExtractor={item => item.id}
@@ -306,19 +328,6 @@ function HomeScreen({ navigation }) {
                                     onPress={OpenInfoRoom}
                                 >
                                     <Text style={styles.textContent}>Thông tin phòng</Text>
-                                    <FontAwesomeIcon icon={faChevronRight} size={18} />
-                                </TouchableOpacity>
-
-                                <TouchableOpacity style={styles.contentWrapper}
-                                    onPress={() => {
-                                        navigation.navigate('Chi tiết', {
-                                            room: roomNumber,
-                                            roomId: roomId
-                                        })
-                                        setModalVisible(false)
-                                    }}
-                                >
-                                    <Text style={styles.textContent}>Thông tin người ở</Text>
                                     <FontAwesomeIcon icon={faChevronRight} size={18} />
                                 </TouchableOpacity>
 

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { TextInput, Button, HelperText } from "react-native-paper"
-import authAPI from "../../api/authAPI";
+import { useSQLiteContext } from 'expo-sqlite/next';
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const SignupScreen = props => {
@@ -19,21 +19,53 @@ const SignupScreen = props => {
 
     const [isPressed, setIsPressed] = useState(false);
     const { navigation } = props;
+    const db = useSQLiteContext();
 
     const HandleSignup = async () => {
         if (userName === '' || password === '' || name === '') {
             alert("Đăng ký không hợp lệ");
             return;
         }
-        return await authAPI.register(userName, password, name)
-            .then(() => {
-                alert("Đăng ký thành công");
-                navigation.navigate("Đăng nhập");
+        setIsPressed(true);
+        try {
+            const result = await db.withTransactionAsync(async () => {
+                await db.runAsync(
+                    'INSERT INTO TaiKhoan (username, password, name) VALUES (?, ?, ?)',
+                    [userName, password, name]
+                )
             })
-            .catch((error) => {
-                console.log(error);
-                alert("Đăng ký không thành công");
+            const user = await db.getFirstAsync('SELECT id FROM TaiKhoan WHERE username = ? AND password = ?', [userName, password]);
+            const addResult1 = await db.withTransactionAsync(async () => {
+                await db.runAsync(
+                    'INSERT INTO BangGia (user_id, hangmuc, donvi, gia) VALUES (?, "Điện", "nghìn đồng/kWh", 12)',
+                    [user.id]
+                )
             })
+            const addResult2 = await db.withTransactionAsync(async () => {
+                await db.runAsync(
+                    'INSERT INTO BangGia (user_id, hangmuc, donvi, gia) VALUES (?, "Nước", "nghìn đồng/khối", 3.5)',
+                    [user.id]
+                )
+            })
+            const addResul3 = await db.withTransactionAsync(async () => {
+                await db.runAsync(
+                    'INSERT INTO BangGia (user_id, hangmuc, donvi, gia) VALUES (?, "Rác", "nghìn đồng/tháng", 10)',
+                    [user.id]
+                )
+            })
+            setIsPressed(false);
+            alert("Đăng ký thành công");
+            navigation.navigate("Đăng nhập");
+        }
+        catch (error) {
+            console.log("Err: ", error);
+            setIsPressed(false);
+            alert("Đăng ký không thành công");
+        }
+    }
+
+    const HandleValidation = async () => {
+
     }
 
     const HandleGoBack = () => {

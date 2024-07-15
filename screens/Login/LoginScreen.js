@@ -3,7 +3,7 @@ import { useContext } from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
 import { TextInput, Button } from "react-native-paper"
 import { AppContext } from "../../contexts/appContext";
-import authAPI from "../../api/authAPI";
+import { useSQLiteContext } from 'expo-sqlite/next';
 
 const LoginScreen = props => {
     const [userName, setUserName] = useState("");
@@ -14,19 +14,29 @@ const LoginScreen = props => {
     const { setUserInfo } = useContext(AppContext);
     const { navigation } = props;
 
+    const db = useSQLiteContext();
+
     const HandleLogin = async () => {
         setIsPressed(true);
-        return await authAPI.login(userName, password)
-            .then((response) => {
-                setUserInfo(response);
+        try {
+            const result = await db.getFirstAsync('SELECT * FROM TaiKhoan WHERE username = ? AND password = ?', [userName, password]);
+            setUserName("");
+            setPassword("");
+            if (result !== null) {
+                setUserInfo(result);
                 setIsPressed(false);
                 navigation.navigate("Home");
-            })
-            .catch((error) => {
-                console.log(error);
-                setIsPressed(false);
+            }
+            else {
                 alert("Sai tài khoản hoặc sai mật khẩu");
-            })
+                setIsPressed(false);
+            }
+
+        }
+        catch (error) {
+            setIsPressed(false);
+            alert("Đã xảy ra lỗi khi đăng nhập");
+        }
     }
 
     const HandleSignup = () => {

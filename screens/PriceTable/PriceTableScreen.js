@@ -1,52 +1,83 @@
 import React, { useState, useEffect, useContext } from "react";
 import { FlatList, Modal, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
-import pricetableAPI from "../../api/pricatableAPI";
 import { AppContext } from "../../contexts/appContext";
+import { useSQLiteContext } from "expo-sqlite";
+import { RadioButton } from "react-native-paper";
 
 function PriceTableScreen() {
     const { userInfo } = useContext(AppContext);
+    const db = useSQLiteContext();
 
     useEffect(() => {
-        const fetchAPI = async () => {
-            try {
-                const response = await pricetableAPI.getAll(userInfo.userId);
-                console.log("Success: ", response);
-                setData(response);
+        db.withTransactionAsync(async () => {
+            getData();
+        });
+    }, [db])
 
-                setRoomKiotPrice(response[0].gia.toString());
-                setRoomOrdinaryPrice(response[1].gia.toString());
-                setElectricPrice(response[2].gia.toString());
-                setWaterPrice(response[3].gia.toString());
-                setRubbishPrice(response[4].gia.toString());
-
-                setLoading(false);
-            }
-            catch (error) {
-                console.log("Xảy ra lỗi: ", error);
-                setLoading(false);
-            }
+    const getData = async () => {
+        try {
+            const result = await db.getAllAsync('SELECT * FROM BangGia WHERE user_id = ?', [userInfo.id]);
+            console.log("Success: ", result);
+            setData(result);
+            setLoading(false);
         }
-
-        fetchAPI();
-    }, [])
+        catch (error) {
+            console.log("Err: ", error);
+            setLoading(false);
+        }
+    }
 
     const [loading, setLoading] = useState(true);
-    const [data, setData] = useState({});
+    const [data, setData] = useState([]);
 
     const [modalVisible, setModalVisible] = useState(false);
-    const [addModalVisible, setAddModalVisible] = useState(false);
-    const [roomKiotPrice, setRoomKiotPrice] = useState('');
-    const [roomOrdinaryPrice, setRoomOrdinaryPrice] = useState('');
     const [electricPrice, setElectricPrice] = useState('');
     const [waterPrice, setWaterPrice] = useState('');
     const [rubbishPrice, setRubbishPrice] = useState('');
+    const [typeUpdate, setTypeUpdate] = useState("Điện");
+
+    const HandleUpdatePrice = async () => {
+        let gia = "";
+        switch (typeUpdate) {
+            case "Điện":
+                gia = electricPrice;
+                break;
+            case "Nước":
+                gia = waterPrice;
+                break;
+            case "Rác":
+                gia = rubbishPrice;
+                break;
+        }
+        try {
+            const result = await db.withTransactionAsync(async () => {
+                await db.runAsync(
+                    'UPDATE BangGia SET gia = ? WHERE user_id = ? AND hangmuc = ?',
+                    [parseFloat(gia), userInfo.id, typeUpdate]
+                )
+                getData();
+            })
+            setElectricPrice("");
+            setWaterPrice("");
+            setRubbishPrice("");
+            setTypeUpdate("Điện")
+            setModalVisible(false);
+            alert("Cập nhật bảng giá thành công");
+            setLoading(true);
+        }
+        catch (error) {
+            console.log(error);
+            setLoading(false);
+            alert("Cập nhật bảng giá thất bại");
+        }
+    }
 
     const renderItem = (item) => {
         return (
             <View style={styles.row}>
-                <Text style={styles.cell}>{item.hangMuc}</Text>
+                <Text style={styles.cell}>{item.hangmuc}</Text>
                 <Text style={styles.cell}>{item.gia}</Text>
-                <Text style={styles.cell}>{item.donVi}</Text>
+                <Text style={styles.cell}>{item.donvi}</Text>
             </View>
         )
     }
@@ -78,12 +109,6 @@ function PriceTableScreen() {
                     onPress={() => setModalVisible(!modalVisible)}>
                     <Text style={styles.textBtn}>Cập nhật</Text>
                 </Pressable>
-
-                <Pressable
-                    style={[styles.button, styles.buttonSave]}
-                    onPress={() => setAddModalVisible(!addModalVisible)}>
-                    <Text style={styles.textBtn}>Thêm hạng mục</Text>
-                </Pressable>
             </View>
 
             <Modal
@@ -95,42 +120,47 @@ function PriceTableScreen() {
                 <View style={styles.modalContainer}>
                     <View style={styles.modal}>
                         <View style={styles.modalContent}>
+                            <Text style={{ marginLeft: 5, fontStyle: "italic" }}>Chọn hạng mục cần cập nhật</Text>
                             <View style={styles.electricContent}>
-                                <View style={styles.content}>
-                                    <Text style={styles.title}>Giá ph kiốt (nghìn đồng/tháng):</Text>
-                                    <TextInput style={styles.inputModal}
-                                        inputMode="numeric"
-                                        value={roomKiotPrice} />
-                                </View>
+                                <RadioButton.Group
+                                    onValueChange={value => setTypeUpdate(value)}
+                                    value={typeUpdate}
+                                >
+                                    <View style={{ gap: 10 }}>
+                                        <View style={styles.content}>
+                                            <View style={{ flexDirection: "row", alignItems: "center" }}>
+                                                <RadioButton value="Điện" />
+                                                <Text style={styles.title}>Giá điện (nghìn đồng/kWh):</Text>
+                                            </View>
+                                            <TextInput style={styles.inputModal}
+                                                inputMode="numeric"
+                                                onChangeText={(e) => setElectricPrice(e)}
+                                                value={electricPrice} />
+                                        </View>
 
-                                <View style={styles.content}>
-                                    <Text style={styles.title}>Giá ph trọ (nghìn đồng/tháng):</Text>
-                                    <TextInput style={styles.inputModal}
-                                        inputMode="numeric"
-                                        value={roomOrdinaryPrice} />
-                                </View>
+                                        <View style={styles.content}>
+                                            <View style={{ flexDirection: "row", alignItems: "center" }}>
+                                                <RadioButton value="Nước" />
+                                                <Text style={styles.title}>Giá nước (nghìn đồng/khối):</Text>
+                                            </View>
+                                            <TextInput style={styles.inputModal}
+                                                inputMode="numeric"
+                                                onChangeText={(e) => setWaterPrice(e)}
+                                                value={waterPrice} />
+                                        </View>
 
-                                <View style={styles.content}>
-                                    <Text style={styles.title}>Giá điện (nghìn đồng/kWh):</Text>
-                                    <TextInput style={styles.inputModal}
-                                        inputMode="numeric"
-                                        value={electricPrice} />
-                                </View>
-
-                                <View style={styles.content}>
-                                    <Text style={styles.title}>Giá nước (nghìn đồng/khối):</Text>
-                                    <TextInput style={styles.inputModal}
-                                        inputMode="numeric"
-                                        value={waterPrice} />
-                                </View>
-
-                                <View style={styles.content}>
-                                    <Text style={styles.title}>Giá rác (nghìn đồng/tháng):</Text>
-                                    <TextInput style={styles.inputModal}
-                                        inputMode="numeric"
-                                        value={rubbishPrice} />
-                                </View>
-
+                                        <View style={styles.content}>
+                                            <View style={{ flexDirection: "row", alignItems: "center" }}>
+                                                <RadioButton value="Rác" />
+                                                <Text style={styles.title}>Giá rác (nghìn đồng/tháng):</Text>
+                                            </View>
+                                            <TextInput style={styles.inputModal}
+                                                inputMode="numeric"
+                                                onChangeText={(e) => setRubbishPrice(e)}
+                                                value={rubbishPrice} />
+                                        </View>
+                                    </View>
+                                </RadioButton.Group>
                             </View>
 
                             <View style={styles.buttonModal}>
@@ -142,67 +172,13 @@ function PriceTableScreen() {
 
                                 <Pressable
                                     style={[styles.button, styles.buttonSave]}
-                                    onPress={() => setModalVisible(!modalVisible)}>
+                                    onPress={() => HandleUpdatePrice()}>
                                     <Text style={styles.textBtn}>Lưu</Text>
                                 </Pressable>
                             </View>
-
                         </View>
                     </View>
                 </View>
-
-            </Modal>
-
-            <Modal
-                animationType="fade"
-                transparent={true}
-                visible={addModalVisible}
-                onRequestClose={() => setAddModalVisible(!addModalVisible)}
-            >
-                <View style={styles.modalContainer}>
-                    <View style={styles.modal}>
-                        <View style={styles.modalContent}>
-                            <View style={styles.electricContent}>
-                                <View style={{ gap: 10, marginBottom: 10 }}>
-                                    <Text style={styles.title}>Hạng mục:</Text>
-                                    <TextInput style={styles.inputAddModal}
-                                        inputMode="numeric"
-                                        value={roomKiotPrice} />
-                                </View>
-
-                                <View style={{ gap: 10, marginBottom: 15 }}>
-                                    <Text style={styles.title}>Giá:</Text>
-                                    <TextInput style={styles.inputAddModal}
-                                        inputMode="numeric"
-                                        value={roomKiotPrice} />
-                                </View>
-
-                                <View style={{ gap: 10, marginBottom: 15 }}>
-                                    <Text style={styles.title}>Đơn vị:</Text>
-                                    <TextInput style={styles.inputAddModal}
-                                        inputMode="numeric"
-                                        value={roomKiotPrice} />
-                                </View>
-                            </View>
-
-                            <View style={styles.buttonModal}>
-                                <Pressable
-                                    style={[styles.button, styles.buttonClose]}
-                                    onPress={() => setAddModalVisible(!modalVisible)}>
-                                    <Text style={styles.textBtn}>Thoát</Text>
-                                </Pressable>
-
-                                <Pressable
-                                    style={[styles.button, styles.buttonSave]}
-                                    onPress={() => setAddModalVisible(!modalVisible)}>
-                                    <Text style={styles.textBtn}>Lưu</Text>
-                                </Pressable>
-                            </View>
-
-                        </View>
-                    </View>
-                </View>
-
             </Modal>
         </View>
     );
@@ -304,8 +280,6 @@ const styles = StyleSheet.create({
         width: "95%",
         backgroundColor: 'white',
         borderRadius: 20,
-        paddingHorizontal: 10,
-        paddingVertical: 5,
         alignItems: 'center',
         shadowColor: '#000',
         shadowOffset: {
@@ -319,6 +293,8 @@ const styles = StyleSheet.create({
 
     modalContent: {
         width: "100%",
+        paddingHorizontal: 10,
+        paddingVertical: 10
     },
 
     electricContent: {
