@@ -43,9 +43,8 @@ export default function App() {
 
   if (loading) {
     return (
-      <View style={{ flex: 1 }}>
+      <View style={{ flex: 1, justifyContent: "center" }}>
         <ActivityIndicator size={"large"} />
-        <Text>Loading ...</Text>
       </View>
     )
   }
@@ -55,7 +54,6 @@ export default function App() {
         fallback={
           <View style={{ flex: 1, justifyContent: "center" }}>
             <ActivityIndicator size={"large"} />
-            <Text>Loading ...</Text>
           </View>
         }
       >

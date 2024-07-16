@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { TextInput, Button, HelperText } from "react-native-paper"
 import { useSQLiteContext } from 'expo-sqlite/next';
@@ -26,6 +26,20 @@ const SignupScreen = props => {
             alert("Đăng ký không hợp lệ");
             return;
         }
+
+        //Check if username is exist
+        try {
+            const result = await db.getAllAsync('SELECT * FROM TaiKhoan WHERE username = ?', [userName])
+            if (result.length > 0) {
+                alert("Tên đăng nhập đã tồn tại");
+                return;
+            }
+        }
+        catch (error) {
+            console.log("Err: ", error);
+            alert("Đã xảy ra lỗi");
+        }
+
         setIsPressed(true);
         try {
             const result = await db.withTransactionAsync(async () => {
@@ -62,10 +76,6 @@ const SignupScreen = props => {
             setIsPressed(false);
             alert("Đăng ký không thành công");
         }
-    }
-
-    const HandleValidation = async () => {
-
     }
 
     const HandleGoBack = () => {

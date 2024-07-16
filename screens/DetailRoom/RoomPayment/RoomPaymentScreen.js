@@ -9,6 +9,7 @@ import pricetableAPI from "../../../api/pricatableAPI";
 import roomAPI from "../../../api/roomAPI";
 import * as MediaLibrary from 'expo-media-library';
 import { AppContext } from "../../../contexts/appContext";
+import { useSQLiteContext } from "expo-sqlite";
 
 function RoomPayment({ route }) {
     const MONTH = [
@@ -37,6 +38,7 @@ function RoomPayment({ route }) {
 
     const { room, roomId } = route.params;
     const { userInfo } = useContext(AppContext);
+    const db = useSQLiteContext();
     const viewShotRef = useRef();
 
     const [status, requestPermission] = MediaLibrary.usePermissions();
@@ -45,57 +47,124 @@ function RoomPayment({ route }) {
         requestPermission();
     }
 
+    // useEffect(() => {
+    //     const fetchRoomAPI = async () => {
+    //         try {
+    //             const roomInfo = await roomAPI.getDetailRoom(roomId);
+
+    //             setRoomPrice(roomInfo.giaPhong.toString());
+    //         }
+    //         catch (error) {
+    //             console.log("Xảy ra lỗi: ", error);
+    //         }
+    //     }
+    //     const fetchTableAPI = async () => {
+    //         try {
+    //             const data = await pricetableAPI.getAll(userInfo.userId);
+
+    //             getPriceTableData(data);
+    //         }
+    //         catch (error) {
+    //             console.log("Xảy ra lỗi: ", error);
+    //         }
+    //     }
+    //     const fetchBillAPI = async () => {
+    //         try {
+    //             let month = new Date();
+    //             let year = new Date();
+
+    //             setMonth((month.getMonth()).toString());
+    //             setYear((year.getFullYear()).toString());
+
+    //             const response = await billAPI.getHoaDonPhong(roomId, month.getMonth() + 1, year.getFullYear());
+
+    //             setHasBill(true);
+
+    //             setBillId(response.id);
+    //             setElectricBillLastMonth(response.soDienThangTruoc.toString());
+    //             setElectricBillThisMonth(response.soDienThangNay.toString());
+    //             setSumElectricBill(response.tongSoDien.toString());
+    //             setLivingTime(response.soNgayO.toString());
+    //             setSumRoomBill(response.tongTienPhong.toString());
+
+    //             setWaterBillLastMonth(response.soNuocThangTruoc.toString());
+    //             setWaterBillThisMonth(response.soNuocThangNay.toString());
+    //             setSumWaterBill(response.tongSoNuoc.toString())
+
+    //             setTotalBill(response.tongHoaDon.toString());
+    //             setNote(response.ghiChu);
+
+    //             setLoading(false);
+    //         }
+    //         catch (error) {
+    //             console.log("Xảy ra lỗi: ", error);
+    //             setElectricBillLastMonth('');
+    //             setElectricBillThisMonth('');
+    //             setSumElectricBill('');
+
+    //             setWaterBillLastMonth('');
+    //             setWaterBillThisMonth('');
+    //             setSumWaterBill('');
+    //             setLivingTime('');
+    //             setSumRoomBill('');
+    //             setTotalBill('0');
+    //             setNote('');
+
+    //             setHasBill(false);
+    //             setLoading(false);
+    //         }
+    //     }
+
+    //     setLoading(true);
+    //     fetchRoomAPI();
+    //     fetchTableAPI();
+    //     fetchBillAPI();
+    // }, [route])
     useEffect(() => {
-        const fetchRoomAPI = async () => {
-            try {
-                const roomInfo = await roomAPI.getDetailRoom(roomId);
+        setLoading(true);
+        getRoom();
+        getTablePrice();
+        getBill();
+    }, [route])
 
-                setRoomPrice(roomInfo.giaPhong.toString());
-            }
-            catch (error) {
-                console.log("Xảy ra lỗi: ", error);
-            }
+    const getRoom = async () => {
+        try {
+            const result = await db.getFirstAsync('SELECT * FROM Phong WHERE id = ?', [roomId]);
+            setRoomPrice(result.giaphong.toString())
         }
-        const fetchTableAPI = async () => {
-            try {
-                const data = await pricetableAPI.getAll(userInfo.userId);
-
-                getPriceTableData(data);
-            }
-            catch (error) {
-                console.log("Xảy ra lỗi: ", error);
-            }
+        catch (error) {
+            console.log("Err: ", error);
+            alert("Đã xảy ra lỗi")
         }
-        const fetchBillAPI = async () => {
-            try {
-                let month = new Date();
-                let year = new Date();
+    }
 
-                setMonth((month.getMonth()).toString());
-                setYear((year.getFullYear()).toString());
+    const getTablePrice = async () => {
+        try {
+            const result = await db.getAllAsync('SELECT * FROM BangGia WHERE user_id = ?', [userInfo.id]);
+            getPriceTableData(result);
+        }
+        catch (error) {
+            console.log("Err: ", error);
+            alert("Đã xảy ra lỗi")
+        }
+    }
 
-                const response = await billAPI.getHoaDonPhong(roomId, month.getMonth() + 1, year.getFullYear());
+    const getBill = async () => {
+        try {
+            let month = new Date();
+            let year = new Date();
 
-                setHasBill(true);
+            setMonth((month.getMonth()).toString());
+            setYear((year.getFullYear()).toString());
 
-                setBillId(response.id);
-                setElectricBillLastMonth(response.soDienThangTruoc.toString());
-                setElectricBillThisMonth(response.soDienThangNay.toString());
-                setSumElectricBill(response.tongSoDien.toString());
-                setLivingTime(response.soNgayO.toString());
-                setSumRoomBill(response.tongTienPhong.toString());
+            const response = await db.getFirstAsync(
+                `SELECT * FROM HoaDonPhong WHERE phong_id = ? AND strftime('%m', ngayhoadon) = ? AND strftime('%Y', ngayhoadon) = ?`,
+                [roomId,
+                    month.getMonth() + 1 < 10 ? '0' + (month.getMonth() + 1).toString() : (month.getMonth() + 1).toString(),
+                    year.getFullYear().toString()]);
+            console.log("Check bill: ", response);
 
-                setWaterBillLastMonth(response.soNuocThangTruoc.toString());
-                setWaterBillThisMonth(response.soNuocThangNay.toString());
-                setSumWaterBill(response.tongSoNuoc.toString())
-
-                setTotalBill(response.tongHoaDon.toString());
-                setNote(response.ghiChu);
-
-                setLoading(false);
-            }
-            catch (error) {
-                console.log("Xảy ra lỗi: ", error);
+            if (response === null) {
                 setElectricBillLastMonth('');
                 setElectricBillThisMonth('');
                 setSumElectricBill('');
@@ -111,13 +180,30 @@ function RoomPayment({ route }) {
                 setHasBill(false);
                 setLoading(false);
             }
-        }
+            else {
+                setHasBill(true);
 
-        setLoading(true);
-        fetchRoomAPI();
-        fetchTableAPI();
-        fetchBillAPI();
-    }, [route])
+                setBillId(response.id);
+                setElectricBillLastMonth(response.sodienthangtruoc.toString());
+                setElectricBillThisMonth(response.sodienthangnay.toString());
+                setSumElectricBill(response.tongsodien.toString());
+                setLivingTime(response.songayo.toString());
+                setSumRoomBill(response.tongtienphong.toString());
+
+                setWaterBillLastMonth(response.sonuocthangtruoc.toString());
+                setWaterBillThisMonth(response.sonuocthangnay.toString());
+                setSumWaterBill(response.tongsonuoc.toString())
+
+                setTotalBill(response.tonghoadon.toString());
+                setNote(response.ghichu);
+            }
+            setLoading(false)
+        }
+        catch (error) {
+            console.log("Err: ", error);
+            alert("Đã xảy ra lỗi")
+        }
+    }
 
     const [month, setMonth] = useState(null);
     const [isFocusMonth, setIsFocusMonth] = useState(false);
@@ -131,7 +217,6 @@ function RoomPayment({ route }) {
     const [hasBill, setHasBill] = useState(false);
 
     //Get data in priceTable
-    //const [kiotPrice, setKiotPrice] = useState('0');
     const [roomPrice, setRoomPrice] = useState('0');
     const [waterPrice, setWaterPrice] = useState('0');
     const [electricPrice, setElectricPrice] = useState('0');
@@ -186,6 +271,7 @@ function RoomPayment({ route }) {
     const totalElectricUpdate = useMemo(() => {
         if (parseInt(sumElectricBill) < 0 || sumElectricBill === '0'
             || (parseInt(sumElectricBill) * parseFloat(electricPrice)).toString() === 'NaN') {
+            setElectricTotal('0');
             return '0';
         }
         else {
@@ -197,6 +283,7 @@ function RoomPayment({ route }) {
 
     const totalWaterUpdate = useMemo(() => {
         if (parseInt(sumWaterBill) < 0 || sumWaterBill == '0' || (parseInt(sumWaterBill) * parseFloat(waterPrice)).toString() === 'NaN') {
+            setWaterTotal('0')
             return '0';
         }
         else {
@@ -208,6 +295,7 @@ function RoomPayment({ route }) {
 
     const totalRoomUpdate = useMemo(() => {
         if (parseInt(livingTime) < 0 || livingTime === '0' || livingTime === '') {
+            setSumRoomBill('0');
             return '0';
         }
         const sum = (Math.round((parseInt(parseFloat(roomPrice) / 30 * parseInt(livingTime))))).toString();
@@ -221,7 +309,7 @@ function RoomPayment({ route }) {
         let water = parseFloat(waterTotal);
         let rubbish = parseFloat(rubbishPrice);
         let room = parseFloat(sumRoomBill);
-        if (electric == 0 || water == 0 || room == 0 || totalBill === "NaN") {
+        if (totalBill === "NaN") {
             return '0';
         }
         else {
@@ -288,29 +376,94 @@ function RoomPayment({ route }) {
     }
 
     const handleCreateBill = async () => {
-        return await billAPI.createHoaDonPhong(
-            userInfo.userId,
-            parseInt(electricBillLastMonth),
-            parseInt(electricBillThisMonth),
-            parseInt(sumElectricBill),
-            parseFloat(electricTotal),
-            parseInt(waterBillLastMonth),
-            parseInt(waterBillThisMonth),
-            parseInt(sumWaterBill),
-            parseFloat(waterTotal),
-            parseInt(livingTime),
-            parseFloat(sumRoomBill),
-            parseFloat(totalBill),
-            note,
-            roomId
+        let day = new Date();
+        const tongket = await db.getFirstAsync(
+            `SELECT * FROM TongKetThang WHERE user_id = ? AND strftime('%m', ngaytongket) = ? AND strftime('%Y', ngaytongket) = ?`,
+            [userInfo.id,
+            day.getMonth() + 1 < 10 ? '0' + (day.getMonth() + 1).toString() : (day.getMonth() + 1).toString(),
+            day.getFullYear().toString()
+            ]
         )
-            .then(() => {
-                setAlertVisible(true);
+        console.log("tongket: ", tongket);
+        if (tongket === null) {
+            await db.withTransactionAsync(async () => {
+                await db.runAsync(
+                    'INSERT INTO TongKetThang (user_id, tongdien, tongnuoc, tongtientongket) ' +
+                    'VALUES (?, 0, 0, 0)',
+                    [userInfo.id]
+                )
             })
-            .catch((error) => {
-                console.log(error);
-                alert("Thêm hóa đơn thất bại");
-            });
+            console.log("đã thêm tổng kết");
+        }
+        try {
+            await db.withTransactionAsync(async () => {
+                await db.runAsync(
+                    'INSERT INTO HoaDonPhong ' +
+                    '(phong_id, sodienthangtruoc, sodienthangnay, tongsodien, tonggiadien, ' +
+                    'sonuocthangtruoc, sonuocthangnay, tongsonuoc, tonggianuoc, ' +
+                    'songayo, tongtienphong, tonghoadon, ghichu) ' +
+                    'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                    [roomId,
+                        parseInt(electricBillLastMonth),
+                        parseInt(electricBillThisMonth),
+                        parseInt(sumElectricBill),
+                        parseFloat(electricTotal),
+                        parseInt(waterBillLastMonth),
+                        parseInt(waterBillThisMonth),
+                        parseInt(sumWaterBill),
+                        parseFloat(waterTotal),
+                        parseInt(livingTime),
+                        parseFloat(sumRoomBill),
+                        parseFloat(totalBill),
+                        note]
+                )
+                console.log("đã thêm hóa đơn");
+            })
+            await db.withTransactionAsync(async () => {
+                await db.runAsync(
+                    `UPDATE TongKetThang SET ` +
+                    `tongdien = tongdien + ?, ` +
+                    `tongnuoc = tongnuoc + ?, ` +
+                    `tongtientongket = tongtientongket + ? ` +
+                    `WHERE user_id = ? AND strftime('%m', ngaytongket) = ? AND strftime('%Y', ngaytongket) = ?`,
+                    [parseFloat(electricTotal),
+                    parseFloat(waterTotal),
+                    parseFloat(totalBill),
+                    userInfo.id,
+                    day.getMonth() + 1 < 10 ? '0' + (day.getMonth() + 1).toString() : (day.getMonth() + 1).toString(),
+                    (day.getFullYear()).toString()]
+                )
+                console.log("đã cập nhật tổng kết");
+            })
+            setAlertVisible(true);
+        }
+        catch (error) {
+            console.log(error);
+            alert("Thêm hóa đơn thất bại");
+        }
+        // return await billAPI.createHoaDonPhong(
+        //     userInfo.userId,
+        //     parseInt(electricBillLastMonth),
+        //     parseInt(electricBillThisMonth),
+        //     parseInt(sumElectricBill),
+        //     parseFloat(electricTotal),
+        //     parseInt(waterBillLastMonth),
+        //     parseInt(waterBillThisMonth),
+        //     parseInt(sumWaterBill),
+        //     parseFloat(waterTotal),
+        //     parseInt(livingTime),
+        //     parseFloat(sumRoomBill),
+        //     parseFloat(totalBill),
+        //     note,
+        //     roomId
+        // )
+        //     .then(() => {
+        //         setAlertVisible(true);
+        //     })
+        //     .catch((error) => {
+        //         console.log(error);
+        //         alert("Thêm hóa đơn thất bại");
+        //     });
     }
 
     const handleUpdateBill = async () => {
@@ -343,8 +496,8 @@ function RoomPayment({ route }) {
 
     const getPriceTableData = (data) => {
         for (let i = 0; i < data.length; i++) {
-            if (data[i].id === 3) setElectricPrice(data[i].gia.toString());
-            else if (data[i].id === 4) setWaterPrice(data[i].gia.toString());
+            if (data[i].hangmuc === "Điện") setElectricPrice(data[i].gia.toString());
+            else if (data[i].hangmuc === "Nước") setWaterPrice(data[i].gia.toString());
             else setRubishPrice(data[i].gia.toString());
         }
     }
@@ -420,7 +573,6 @@ function RoomPayment({ route }) {
                         }}
                     />
                 </View>
-
             </View>
 
             {
@@ -577,7 +729,6 @@ function RoomPayment({ route }) {
                                         value={totalBillUpdate === "NaN" ? "0" : totalBillUpdate} />
 
                                 </View>
-
                             </View>
 
                             <View style={styles.electricContent}>
@@ -639,7 +790,6 @@ function RoomPayment({ route }) {
                             }
                         </View>
                     </>
-
             }
 
             <Modal
@@ -671,7 +821,6 @@ function RoomPayment({ route }) {
                                     <Text style={styles.textBtn}>OK</Text>
                                 </Pressable>
                             </View>
-
                         </View>
                     </View>
                 </View>
@@ -769,7 +918,6 @@ function RoomPayment({ route }) {
                                     <Text style={styles.textBtn}>Lưu</Text>
                                 </Pressable>
                             </View>
-
                         </View>
                     </View>
                 </View>
