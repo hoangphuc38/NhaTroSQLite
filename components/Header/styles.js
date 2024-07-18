@@ -10,8 +10,23 @@ export default styles = StyleSheet.create({
         alignItems: "center",
     },
 
+    taskbarnoicon: {
+        width: "100%",
+        padding: 10,
+        display: "flex",
+        flexDirection: "row",
+        alignItems: "center",
+    },
+
     text: {
         fontSize: 20,
+    },
+
+    textnoicon: {
+        flex: 1,
+        display: "flex",
+        alignItems: "center",
+        paddingLeft: -20
     },
 
     button: {

@@ -1,9 +1,9 @@
 import React, { useContext, useEffect, useState } from "react";
-import { ScrollView, StyleSheet, Text, View, FlatList, TextInput } from "react-native";
+import { ScrollView, StyleSheet, Text, View, FlatList, TextInput, ActivityIndicator } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
-import summaryAPI from "../../api/summaryAPI";
 import { useNavigation } from "@react-navigation/native";
 import { AppContext } from "../../contexts/appContext";
+import { useSQLiteContext } from "expo-sqlite";
 
 function SummaryScreen() {
     const navigation = useNavigation();
@@ -33,6 +33,7 @@ function SummaryScreen() {
     ];
 
     const { userInfo } = useContext(AppContext);
+    const db = useSQLiteContext();
 
     const [month, setMonth] = useState(null);
     const [isFocusMonth, setIsFocusMonth] = useState(false);
@@ -45,38 +46,46 @@ function SummaryScreen() {
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        const fetchAPI = async () => {
-            try {
-                let month = new Date();
-                let year = new Date();
-                setMonth((month.getMonth()).toString());
-                setYear((year.getFullYear()).toString());
-
-                const response = await summaryAPI.getSummary(month.getMonth() + 1, year.getFullYear(), userInfo.userId);
-                setData(response.danhSachHoaDon);
-                setElectricTotal(response.tongDien.toString());
-                setWaterTotal(response.tongNuoc.toString());
-                setTotal(response.tongTienTongKet.toString());
-
-                console.log("Điện: ", response.tongDien.toString());
-                console.log("Nước: ", response.tongNuoc.toString())
-                console.log("Phòng: ", response.tongTienTongKet.toString())
-                setLoading(false);
-
-            }
-            catch (error) {
-                console.log("Xảy ra lỗi: ", error);
-                setLoading(false);
-            }
-        }
-
         setLoading(true);
-        const unsubscribe = navigation.addListener('focus', fetchAPI);
+        const unsubscribe = navigation.addListener('focus', getData);
 
-        fetchAPI();
+        getData();
 
         return unsubscribe;
     }, [navigation])
+    const getData = async () => {
+        try {
+            let month = new Date();
+            let year = new Date();
+            setMonth((month.getMonth()).toString());
+            setYear((year.getFullYear()).toString());
+
+            const response = await db.getFirstAsync(
+                `SELECT * FROM TongKetThang WHERE user_id = ? AND strftime('%m', ngaytongket) = ? AND strftime('%Y', ngaytongket) = ?`,
+                [userInfo.id,
+                month.getMonth() + 1 < 10 ? '0' + (month.getMonth() + 1).toString() : (month.getMonth() + 1).toString(),
+                year.getFullYear().toString()]
+            )
+            const result = await db.getAllAsync(
+                `SELECT * FROM HoaDonPhong INNER JOIN Phong ON Phong.id = HoaDonPhong.phong_id ` +
+                `WHERE tongket_id = ? AND ` +
+                `strftime('%m', ngayhoadon) = ? AND strftime('%Y', ngayhoadon) = ?`,
+                [response.id,
+                month.getMonth() + 1 < 10 ? '0' + (month.getMonth() + 1).toString() : (month.getMonth() + 1).toString(),
+                year.getFullYear().toString()]
+            )
+            console.log("Danhsachhoadon: ", result);
+            setData(result);
+            setElectricTotal(response.tongdien.toString());
+            setWaterTotal(response.tongnuoc.toString());
+            setTotal(response.tongtientongket.toString());
+            setLoading(false);
+        }
+        catch (error) {
+            console.log("Xảy ra lỗi: ", error);
+            setLoading(false);
+        }
+    }
 
     const getThisMonth = () => {
         let month = new Date();
@@ -91,19 +100,28 @@ function SummaryScreen() {
     const getSummaryOfMonth = async (monthValue, yearValue) => {
         try {
             setLoading(true);
-            const response = await summaryAPI.getSummary(parseInt(monthValue) + 1, parseInt(yearValue), userInfo.userId);
-            setData(response.danhSachHoaDon);
-            setElectricTotal(response.tongDien.toString());
-            setWaterTotal(response.tongNuoc.toString());
-            setTotal(response.tongTienTongKet.toString());
-
-
+            const response = await db.getFirstAsync(
+                `SELECT * FROM TongKetThang WHERE user_id = ? AND strftime('%m', ngaytongket) = ? AND strftime('%Y', ngaytongket) = ?`,
+                [userInfo.id,
+                parseInt(monthValue) + 1 < 10 ? '0' + (parseInt(monthValue) + 1).toString() : (parseInt(monthValue) + 1).toString(),
+                parseInt(yearValue).toString()]
+            )
+            const result = await db.getAllAsync(
+                `SELECT * FROM HoaDonPhong INNER JOIN Phong ON Phong.id = HoaDonPhong.phong_id ` +
+                `WHERE tongket_id = ? AND ` +
+                `strftime('%m', ngayhoadon) = ? AND strftime('%Y', ngayhoadon) = ?`,
+                [response.id,
+                parseInt(monthValue) + 1 < 10 ? '0' + (parseInt(monthValue) + 1).toString() : (parseInt(monthValue) + 1).toString(),
+                parseInt(yearValue).toString()]
+            )
+            setData(result);
+            setElectricTotal(response.tongdien.toString());
+            setWaterTotal(response.tongnuoc.toString());
+            setTotal(response.tongtientongket.toString());
             setLoading(false);
         }
         catch (error) {
             console.log("Xảy ra lỗi: ", error);
-            console.log("Tháng: ", parseInt(monthValue));
-            console.log("Năm: ", yearValue);
             setData([]);
             setElectricTotal('0');
             setWaterTotal('0');
@@ -115,10 +133,10 @@ function SummaryScreen() {
     const renderItem = (item, index) => {
         return (
             <View style={styles.row}>
-                <Text style={styles.cellRoom}>{item.phong.tenPhong}</Text>
-                <Text style={styles.cellContent}>{item.tongHoaDon}</Text>
+                <Text style={styles.cellRoom}>{item.tenphong}</Text>
+                <Text style={styles.cellContent}>{item.tonghoadon}</Text>
                 <TextInput style={styles.cellNote}
-                    value={item.ghiChu}>
+                    value={item.ghichu}>
                 </TextInput>
             </View>
         )
@@ -172,14 +190,12 @@ function SummaryScreen() {
                         }}
                     />
                 </View>
-
             </View>
 
             {
-                loading ? <Text>Đang tải ...</Text>
+                loading ? <ActivityIndicator style={{ justifyContent: "center" }} color={"red"} size={"small"} />
                     :
                     <View style={styles.tableWrapper}>
-
                         <View style={styles.headerTopBar}>
                             <Text style={styles.headerTopBarText}>Tổng kết tháng</Text>
                         </View>
@@ -227,8 +243,6 @@ function SummaryScreen() {
                         </View>
                     </View>
             }
-
-
         </View>
     );
 }

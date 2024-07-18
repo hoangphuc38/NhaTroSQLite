@@ -73,7 +73,7 @@ const ScreenWithDrawer = () => {
                 component={SummaryScreen}
                 options={({ navigation }) => {
                     return {
-                        header: () => <Header title="Tổng kết tháng" navigation={navigation} iconButton={faMagnifyingGlass} />,
+                        header: () => <Header title="Tổng kết tháng" navigation={navigation} />,
                         drawerLabel: () => <MenuItem title="Tổng kết tháng" icon={<FontAwesomeIcon icon={faChartSimple} />} />
                     }
                 }} />

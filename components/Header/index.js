@@ -11,15 +11,23 @@ function Header({ title, navigation, iconButton, onPressButton }) {
     }
     return (
         <SafeAreaView >
-            <View style={styles.taskbar}>
+            <View style={iconButton ? styles.taskbar : styles.taskbarnoicon}>
                 <TouchableOpacity onPress={openMenu}>
                     <FontAwesomeIcon icon={faBars} size={20} />
                 </TouchableOpacity>
 
-                <Text style={styles.text}>{title}</Text>
-                <TouchableOpacity style={styles.button} onPress={onPressButton}>
-                    <FontAwesomeIcon icon={iconButton} size={20} />
-                </TouchableOpacity>
+                <View style={iconButton ? null : styles.textnoicon}>
+                    <Text style={styles.text}>{title}</Text>
+                </View>
+
+                {
+                    iconButton ?
+                        <TouchableOpacity style={styles.button} onPress={onPressButton}>
+                            <FontAwesomeIcon icon={iconButton} size={20} />
+                        </TouchableOpacity>
+                        : null
+                }
+
 
             </View>
         </SafeAreaView>

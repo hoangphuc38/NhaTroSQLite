@@ -5,7 +5,6 @@ import { StatusBar } from "expo-status-bar";
 import Room from "../../components/Room";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { faChevronRight } from "@fortawesome/free-solid-svg-icons";
-import roomAPI from "../../api/roomAPI";
 import { RadioButton } from "react-native-paper";
 import { AppContext } from "../../contexts/appContext";
 import DialogBox from "../../components/DialogBox";
@@ -25,7 +24,7 @@ function HomeScreen({ navigation }) {
     const getData = async () => {
         try {
             const result = await db.getAllAsync(
-                'SELECT * FROM Phong WHERE user_id = ? ORDER BY tenphong ASC',
+                'SELECT * FROM Phong WHERE user_id = ? ORDER BY CAST(tenphong as decimal) ASC',
                 [userInfo.id]
             );
             setRoomData(result);
@@ -148,7 +147,7 @@ function HomeScreen({ navigation }) {
         <View style={styles.container}>
             <StatusBar style="dark" />
 
-            <View style={styles.notation}>
+            {/* <View style={styles.notation}>
                 <View style={styles.empty}>
                     <View style={styles.symbol}></View>
                     <Text style={styles.note}>Phòng trống</Text>
@@ -158,7 +157,7 @@ function HomeScreen({ navigation }) {
                     <View style={styles.symbolfull}></View>
                     <Text style={styles.note}>Phòng đã thuê</Text>
                 </View>
-            </View>
+            </View> */}
 
             <Modal
                 animationType="fade"
