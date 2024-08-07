@@ -9,11 +9,12 @@ export default styles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-        backgroundColor: "pink"
+        backgroundColor: "#0B60B0"
     },
 
     text: {
         fontSize: 20,
+        color: "white"
     },
 
     button: {

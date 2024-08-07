@@ -477,7 +477,7 @@ function RoomPayment({ route }) {
                         selectedTextStyle={styles.selectedTextStyle}
                         inputSearchStyle={styles.inputSearchStyle}
                         data={MONTH}
-                        maxHeight={100}
+                        maxHeight={200}
                         labelField="label"
                         valueField="value"
                         placeholder={!isFocusMonth ? getThisMonth() : '...'}
@@ -500,7 +500,7 @@ function RoomPayment({ route }) {
                         selectedTextStyle={styles.selectedTextStyle}
                         inputSearchStyle={styles.inputSearchStyle}
                         data={YEAR}
-                        maxHeight={100}
+                        maxHeight={200}
                         labelField="label"
                         valueField="value"
                         placeholder={!isFocusYear ? getThisYear() : '...'}
@@ -892,33 +892,73 @@ function RoomPayment({ route }) {
                                         <Text>Số điện tháng này:</Text>
                                         <Text>Tổng số điện:</Text>
                                         <Text>Tổng tiền điện:</Text>
-                                        <Text></Text>
+                                        <View
+                                            style={{
+                                                borderBottomColor: 'black',
+                                                borderBottomWidth: 0.5,
+                                            }}
+                                        />
                                         <Text>Số nước tháng trước:</Text>
                                         <Text>Số nước tháng này:</Text>
                                         <Text>Tổng số nước:</Text>
                                         <Text>Tổng tiền nước:</Text>
-                                        <Text></Text>
+                                        <View
+                                            style={{
+                                                borderBottomColor: 'black',
+                                                borderBottomWidth: 0.5,
+                                            }}
+                                        />
                                         <Text>Tiền rác:</Text>
-                                        <Text></Text>
+                                        <View
+                                            style={{
+                                                borderBottomColor: 'black',
+                                                borderBottomWidth: 0.5,
+                                            }}
+                                        />
                                         <Text>Tiền phòng:</Text>
-                                        <Text></Text>
-                                        <Text>Tổng cộng:</Text>
+                                        <View
+                                            style={{
+                                                borderBottomColor: 'black',
+                                                borderBottomWidth: 0.5,
+                                            }}
+                                        />
+                                        <Text style={{ fontWeight: "bold" }}>Tổng cộng:</Text>
                                     </View>
                                     <View style={styles.titleBill}>
                                         <Text style={styles.contentBill}>{electricBillLastMonth}</Text>
                                         <Text style={styles.title}>{electricBillThisMonth}</Text>
                                         <Text style={styles.contentBill}>{sumElectricBill}</Text>
                                         <Text style={styles.title}>{electricTotal + ".000"}</Text>
-                                        <Text></Text>
+                                        <View
+                                            style={{
+                                                borderBottomColor: 'black',
+                                                borderBottomWidth: 0.5,
+                                            }}
+                                        />
                                         <Text style={styles.contentBill}>{waterBillLastMonth}</Text>
                                         <Text style={styles.title}>{waterBillThisMonth}</Text>
                                         <Text style={styles.contentBill}>{sumWaterBill}</Text>
                                         <Text style={styles.title}>{waterTotal + ".000"}</Text>
-                                        <Text></Text>
+                                        <View
+                                            style={{
+                                                borderBottomColor: 'black',
+                                                borderBottomWidth: 0.5,
+                                            }}
+                                        />
                                         <Text style={styles.contentBill}>{rubbishPrice}</Text>
-                                        <Text></Text>
+                                        <View
+                                            style={{
+                                                borderBottomColor: 'black',
+                                                borderBottomWidth: 0.5,
+                                            }}
+                                        />
                                         <Text style={styles.contentBill}>{sumRoomBill}</Text>
-                                        <Text></Text>
+                                        <View
+                                            style={{
+                                                borderBottomColor: 'black',
+                                                borderBottomWidth: 0.5,
+                                            }}
+                                        />
                                         <Text style={styles.contentBillSum}>{totalBill + ".000"}</Text>
                                     </View>
                                 </View>

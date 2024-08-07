@@ -2,7 +2,7 @@ import { StyleSheet } from "react-native"
 
 export default styles = StyleSheet.create({
     container: {
-        backgroundColor: '#0B60B0',
+        backgroundColor: '#629DD5',
         width: "30%",
         aspectRatio: 1,
         padding: 20,
@@ -11,6 +11,7 @@ export default styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         borderRadius: 10,
+
     },
     Emptycontainer: {
         backgroundColor: 'green',
@@ -24,7 +25,7 @@ export default styles = StyleSheet.create({
         borderRadius: 10,
     },
     numberRoom: {
-        fontSize: 20,
+        fontSize: 25,
         color: "white",
         fontWeight: "bold",
         fontStyle: "italic",

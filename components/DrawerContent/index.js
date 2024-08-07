@@ -42,7 +42,7 @@ function DrawerContent(props) {
                                     }}
                                     size={50}
                                 />
-                                <View style={{ marginLeft: 10, flexDirection: 'column' }}>
+                                <View style={{ marginLeft: 20, flexDirection: 'column' }}>
                                     <Title style={styles.title}>{userInfo.name}</Title>
                                 </View>
                             </View>
@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
         paddingLeft: 20,
     },
     title: {
-        fontSize: 16,
+        fontSize: 17,
         marginTop: 3,
         fontWeight: 'bold',
     },

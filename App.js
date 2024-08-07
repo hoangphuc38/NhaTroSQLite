@@ -5,7 +5,7 @@ import { PaperProvider } from 'react-native-paper';
 import { Asset } from 'expo-asset';
 import * as FileSystem from 'expo-file-system';
 import { Suspense, useEffect, useState } from 'react';
-import { ActivityIndicator, View, Text } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 import { SQLiteProvider } from 'expo-sqlite';
 
 const loadDatabase = async () => {
@@ -16,19 +16,18 @@ const loadDatabase = async () => {
 
   const fileInfo = await FileSystem.getInfoAsync(dbFilePath);
   if (!fileInfo.exists) {
-    console.log("Database file not found, downloading...");
     try {
       await FileSystem.makeDirectoryAsync(
         `${FileSystem.documentDirectory}SQLite`,
         { intermediates: true }
       );
       await FileSystem.downloadAsync(dbUri, dbFilePath);
-      console.log("Database downloaded successfully!");
+      console.log("Download database successfully");
     } catch (error) {
       console.error("Error downloading database:", error);
     }
   } else {
-    console.log("Database file exists.");
+    console.log("Database file exists.", fileInfo);
   }
 }
 
@@ -66,6 +65,5 @@ export default function App() {
         </SQLiteProvider>
       </Suspense>
     </NavigationContainer>
-
   );
 }

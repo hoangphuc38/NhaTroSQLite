@@ -4,10 +4,10 @@
     "slug": "QuanLyNhaTro",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/images/circle_logo_with_a_house_and_blue_color.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/images/circle_logo_with_a_house_and_blue_color.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -19,12 +19,18 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/images/circle_logo_with_a_house_and_blue_color.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.phuc_h.QuanLyNhaTro"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "03989859-0924-429b-83cc-0bf8ef734f77"
+      }
     }
   }
 }

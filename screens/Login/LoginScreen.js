@@ -31,11 +31,10 @@ const LoginScreen = props => {
                 alert("Sai tài khoản hoặc sai mật khẩu");
                 setIsPressed(false);
             }
-
         }
         catch (error) {
             setIsPressed(false);
-            alert("Đã xảy ra lỗi khi đăng nhập");
+            alert("Đã xảy ra lỗi khi đăng nhập" + error);
         }
     }
 
@@ -46,7 +45,7 @@ const LoginScreen = props => {
     return (
         <View style={styles.container}>
             <Image
-                source={require('../../images/circle_logo_with_a_house_and_blue_color.png')}
+                source={require('../../assets/images/circle_logo_with_a_house_and_blue_color.png')}
                 style={{ width: 200, height: 200, borderRadius: 30., marginBottom: 10, marginTop: -40 }}
             />
             <Text style={styles.loginText}>NhaTroApp</Text>
@@ -70,11 +69,6 @@ const LoginScreen = props => {
                         mode="outlined"
                         outlineStyle={{ borderWidth: 0.5 }}
                         secureTextEntry={showed}
-                        right={<TextInput.Icon icon="eye"
-                            onPress={() => {
-                                setShowed(!showed);
-                            }
-                            } />}
                     />
                 </View>
             </View>

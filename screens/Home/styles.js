@@ -54,10 +54,11 @@ export default styles = StyleSheet.create({
 
     modal: {
         width: "70%",
+        height: "30%",
         backgroundColor: 'white',
         borderRadius: 20,
         paddingHorizontal: 15,
-        paddingVertical: 5,
+        paddingVertical: 15,
         alignItems: 'center',
         shadowColor: '#000',
         shadowOffset: {
@@ -123,6 +124,7 @@ export default styles = StyleSheet.create({
         color: 'white',
         fontWeight: 'bold',
         textAlign: 'center',
+        fontSize: 15
     },
 
     modalAddRoom: {

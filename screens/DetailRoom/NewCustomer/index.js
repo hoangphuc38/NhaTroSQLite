@@ -2,13 +2,11 @@ import React, { useContext, useState } from "react";
 import styles from "./styles";
 import { View, Text, ScrollView, Pressable } from "react-native";
 import { Avatar, RadioButton, TextInput } from "react-native-paper";
-import customerAPI from "../../../api/customerAPI";
 import { AppContext } from "../../../contexts/appContext";
 
 function NewCustomer({ navigation }) {
     const { roomID } = useContext(AppContext);
 
-    const [avatar, setAvatar] = useState("");
     const [hoTen, setHoTen] = useState("");
     const [namSinh, setNamSinh] = useState("");
     const [isNam, setIsNam] = useState(true);
@@ -20,25 +18,25 @@ function NewCustomer({ navigation }) {
         alert("Hiện tại chưa có tính năng tải ảnh");
     }
 
-    const HandleAddNew = async () => {
-        return await customerAPI.newPerson(
-            avatar,
-            hoTen,
-            namSinh,
-            isNam,
-            noiDangKyHoKhau,
-            cccd,
-            ngheNghiep,
-            roomID)
-            .then(() => {
-                alert("Thêm người ở thành công");
-                navigation.goBack();
-            })
-            .catch((error) => {
-                console.log(error);
-                alert("Thêm người ở thất bại");
-            })
-    }
+    // const HandleAddNew = async () => {
+    //     return await customerAPI.newPerson(
+    //         avatar,
+    //         hoTen,
+    //         namSinh,
+    //         isNam,
+    //         noiDangKyHoKhau,
+    //         cccd,
+    //         ngheNghiep,
+    //         roomID)
+    //         .then(() => {
+    //             alert("Thêm người ở thành công");
+    //             navigation.goBack();
+    //         })
+    //         .catch((error) => {
+    //             console.log(error);
+    //             alert("Thêm người ở thất bại");
+    //         })
+    // }
 
     return (
         <ScrollView style={styles.container}>

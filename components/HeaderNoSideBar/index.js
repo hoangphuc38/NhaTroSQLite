@@ -13,7 +13,7 @@ function HeaderNoSideBar({ title, navigation, iconButton, onPressButton }) {
         <SafeAreaView >
             <View style={styles.taskbar}>
                 <TouchableOpacity onPress={goBack}>
-                    <FontAwesomeIcon icon={faArrowLeft} size={20} />
+                    <FontAwesomeIcon icon={faArrowLeft} size={20} color="white" />
                 </TouchableOpacity>
 
                 <Text style={styles.text}>{title}</Text>
@@ -25,10 +25,7 @@ function HeaderNoSideBar({ title, navigation, iconButton, onPressButton }) {
                         </TouchableOpacity>
                         :
                         <Text></Text>
-
                 }
-
-
             </View>
         </SafeAreaView>
     );

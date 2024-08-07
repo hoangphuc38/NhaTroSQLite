@@ -240,7 +240,8 @@ export default styles = StyleSheet.create({
 
     contentBillSum: {
         fontWeight: "bold",
-        color: "red"
+        color: "black",
+        fontSize: 16
     },
 
     buttonModal: {

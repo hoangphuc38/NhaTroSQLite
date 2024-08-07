@@ -3,28 +3,27 @@ import { FlatList, View, Text } from "react-native";
 import styles from "./styles";
 import CustomerCard from "../../../components/CustomerCard";
 import { SearchBar } from '@rneui/themed/dist/SearchBar';
-import customerAPI from "../../../api/customerAPI";
 
 function CustomerInfoScreen({ route }) {
     const { room, roomId } = route.params;
 
-    useEffect(() => {
-        const fetchAPI = async () => {
-            try {
-                const response = await customerAPI.getPeopleInRoom(roomId);
-                console.log("so phong: ", room);
-                console.log("Success: ", response);
-                setUserList(response);
-            }
-            catch (error) {
-                console.log("Xảy ra lỗi: ", error);
-                console.log("id: ", roomId)
-            }
-        }
+    // useEffect(() => {
+    //     const fetchAPI = async () => {
+    //         try {
+    //             const response = await customerAPI.getPeopleInRoom(roomId);
+    //             console.log("so phong: ", room);
+    //             console.log("Success: ", response);
+    //             setUserList(response);
+    //         }
+    //         catch (error) {
+    //             console.log("Xảy ra lỗi: ", error);
+    //             console.log("id: ", roomId)
+    //         }
+    //     }
 
-        fetchAPI();
+    //     fetchAPI();
 
-    }, [route])
+    // }, [route])
 
     const [searchValue, setSearchValue] = useState('');
     const [userList, setUserList] = useState([]);

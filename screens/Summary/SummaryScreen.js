@@ -152,7 +152,7 @@ function SummaryScreen() {
                         selectedTextStyle={styles.selectedTextStyle}
                         inputSearchStyle={styles.inputSearchStyle}
                         data={MONTH}
-                        maxHeight={100}
+                        maxHeight={200}
                         labelField="label"
                         valueField="value"
                         placeholder={!isFocusMonth ? getThisMonth() : '...'}
@@ -175,7 +175,7 @@ function SummaryScreen() {
                         selectedTextStyle={styles.selectedTextStyle}
                         inputSearchStyle={styles.inputSearchStyle}
                         data={YEAR}
-                        maxHeight={100}
+                        maxHeight={200}
                         labelField="label"
                         valueField="value"
                         placeholder={!isFocusYear ? getThisYear() : '...'}
@@ -260,6 +260,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         gap: 5,
         justifyContent: "flex-end",
+        marginTop: 10
     },
 
     dropdown: {
@@ -306,7 +307,7 @@ const styles = StyleSheet.create({
     },
 
     headerTopBar: {
-        backgroundColor: "#6AB7E2",
+        backgroundColor: "#629DD5",
         paddingHorizontal: 12,
         paddingVertical: 10,
         borderRadius: 5,

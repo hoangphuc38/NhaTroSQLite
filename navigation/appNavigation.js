@@ -73,7 +73,7 @@ const ScreenWithDrawer = () => {
                 component={SummaryScreen}
                 options={({ navigation }) => {
                     return {
-                        header: () => <Header title="Tổng kết tháng" navigation={navigation} />,
+                        header: () => <Header title="Tổng kết" navigation={navigation} />,
                         drawerLabel: () => <MenuItem title="Tổng kết tháng" icon={<FontAwesomeIcon icon={faChartSimple} />} />
                     }
                 }} />
@@ -82,8 +82,8 @@ const ScreenWithDrawer = () => {
                 component={PriceTableScreen}
                 options={({ navigation }) => {
                     return {
-                        header: () => <Header title="Bảng giá" navigation={navigation} />,
-                        drawerLabel: () => <MenuItem title="Bảng giá" icon={<FontAwesomeIcon icon={faTableList} />} />
+                        header: () => <Header title="Thông tin" navigation={navigation} />,
+                        drawerLabel: () => <MenuItem title="Thông tin" icon={<FontAwesomeIcon icon={faTableList} />} />
                     }
                 }} />
 

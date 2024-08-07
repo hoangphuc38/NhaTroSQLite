@@ -12,8 +12,15 @@ function Header({ title, navigation, iconButton, onPressButton }) {
     return (
         <SafeAreaView >
             <View style={iconButton ? styles.taskbar : styles.taskbarnoicon}>
-                <TouchableOpacity onPress={openMenu}>
-                    <FontAwesomeIcon icon={faBars} size={20} />
+                <TouchableOpacity onPress={openMenu}
+                    style={{
+                        padding: 4,
+                        alignItems: "center",
+                        justifyContent: "center",
+                        backgroundColor: "white",
+                        borderRadius: 5
+                    }}>
+                    <FontAwesomeIcon icon={faBars} size={18} color="black" />
                 </TouchableOpacity>
 
                 <View style={iconButton ? null : styles.textnoicon}>

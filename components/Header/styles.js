@@ -3,11 +3,12 @@ import { StyleSheet } from "react-native"
 export default styles = StyleSheet.create({
     taskbar: {
         width: "100%",
-        padding: 10,
+        padding: 8,
         display: "flex",
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
+        backgroundColor: "#0B60B0",
     },
 
     taskbarnoicon: {
@@ -16,10 +17,12 @@ export default styles = StyleSheet.create({
         display: "flex",
         flexDirection: "row",
         alignItems: "center",
+        backgroundColor: "#0B60B0",
     },
 
     text: {
-        fontSize: 20,
+        fontSize: 23,
+        color: "white"
     },
 
     textnoicon: {
