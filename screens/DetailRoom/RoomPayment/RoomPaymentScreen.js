@@ -253,6 +253,16 @@ function RoomPayment({ route }) {
         return (year.getFullYear()).toString();
     }
 
+    const showThisMonth = () => {
+        let month = new Date();
+
+        if (month.getMonth() == 0) {
+            return 'Tháng 12'
+        }
+
+        return 'Tháng ' + (month.getMonth()).toString();
+    }
+
     const getBillOfMonth = async (monthValue, yearValue) => {
         try {
             setLoading(true);
@@ -879,7 +889,7 @@ function RoomPayment({ route }) {
                                 ref={viewShotRef}
                                 collapsable={false}>
                                 <View style={styles.contentDate}>
-                                    <Text style={styles.title}>{getThisMonth() + "/" + getThisYear()}</Text>
+                                    <Text style={styles.title}>{showThisMonth() + "/" + getThisYear()}</Text>
                                 </View>
 
                                 <View style={styles.contentHeader}>

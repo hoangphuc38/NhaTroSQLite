@@ -1,9 +1,12 @@
 import React, { useContext, useEffect, useState } from "react";
-import { ScrollView, StyleSheet, Text, View, FlatList, TextInput, ActivityIndicator } from "react-native";
+import { ScrollView, StyleSheet, Text, View, FlatList, TextInput, ActivityIndicator, Modal, Pressable, TouchableOpacity } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
 import { useNavigation } from "@react-navigation/native";
 import { AppContext } from "../../contexts/appContext";
 import { useSQLiteContext } from "expo-sqlite";
+import { Button } from "@rneui/themed/dist/Button";
+import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
+import { faPlus, faSortDown, faSortUp } from "@fortawesome/free-solid-svg-icons";
 
 function SummaryScreen() {
     const navigation = useNavigation();
@@ -43,7 +46,22 @@ function SummaryScreen() {
     const [electricTotal, setElectricTotal] = useState('');
     const [waterTotal, setWaterTotal] = useState('');
     const [total, setTotal] = useState('');
+    const [totalAfterModify, setTotalAfterModify] = useState('');
+
+    const [modalVisible, setModalVisible] = useState(false);
+    const [openAddRoomCoc, setOpenAddRoomCoc] = useState(false);
+    const [openAddRoomTra, setOpenAddRoomTra] = useState(false);
+
     const [loading, setLoading] = useState(false);
+    const [isListRoomVisible, setIsListRoomVisible] = useState(false);
+    const [isListCocVisible, setIsListCocVisible] = useState(false);
+    const [isListTraVisible, setIsListTraVisible] = useState(false);
+
+    const [newType, setNewType] = useState(1);
+    const [newName, setNewName] = useState("");
+    const [newPrice, setNewPrice] = useState("");
+
+
 
     useEffect(() => {
         setLoading(true);
@@ -53,6 +71,7 @@ function SummaryScreen() {
 
         return unsubscribe;
     }, [navigation])
+
     const getData = async () => {
         try {
             let month = new Date();
@@ -74,11 +93,11 @@ function SummaryScreen() {
                 month.getMonth() + 1 < 10 ? '0' + (month.getMonth() + 1).toString() : (month.getMonth() + 1).toString(),
                 year.getFullYear().toString()]
             )
-            console.log("Danhsachhoadon: ", result);
             setData(result);
             setElectricTotal(response.tongdien.toString());
             setWaterTotal(response.tongnuoc.toString());
             setTotal(response.tongtientongket.toString());
+            setTotalAfterModify(response.tongtientongket.toString());
             setLoading(false);
         }
         catch (error) {
@@ -130,20 +149,40 @@ function SummaryScreen() {
         }
     }
 
+    const toggleList = () => {
+        setIsListRoomVisible(!isListRoomVisible);
+    };
+
+    const toggleCoc = () => {
+        setIsListCocVisible(!isListCocVisible);
+    }
+
+    const toggleTra = () => {
+        setIsListTraVisible(!isListTraVisible);
+    }
+
+    const HandleNewRoom = () => {
+
+    }
+
     const renderItem = (item, index) => {
         return (
-            <View style={styles.row}>
-                <Text style={styles.cellRoom}>{item.tenphong}</Text>
-                <Text style={styles.cellContent}>{item.tonghoadon}</Text>
-                <TextInput style={styles.cellNote}
-                    value={item.ghichu}>
+            <View style={styles.content}>
+                <Text style={styles.title}>Phòng {item.tenphong} :</Text>
+                <TextInput style={styles.inputSumRoom}
+                    inputMode="numeric"
+                    readOnly
+                >
+                    <Text>{item.tonghoadon.toString()}</Text>
                 </TextInput>
             </View>
         )
     }
 
     return (
-        <View style={styles.container}>
+        <ScrollView style={styles.container}
+            showsVerticalScrollIndicator={false}
+        >
             <View style={styles.filter}>
                 <View>
                     <Dropdown
@@ -196,54 +235,289 @@ function SummaryScreen() {
                 loading ? <ActivityIndicator style={{ justifyContent: "center" }} color={"red"} size={"small"} />
                     :
                     <View style={styles.tableWrapper}>
-                        <View style={styles.headerTopBar}>
-                            <Text style={styles.headerTopBarText}>Tổng kết tháng</Text>
-                        </View>
+                        <TouchableOpacity onPress={toggleList}>
+                            <View style={styles.titleView}>
+                                <Text style={styles.title}>Danh sách các phòng</Text>
+                                <FontAwesomeIcon
+                                    icon={isListRoomVisible ? faSortUp : faSortDown}
+                                    size={14}
+                                    color="black"
+                                />
+                            </View>
+                        </TouchableOpacity>
+                        {isListRoomVisible && (
+                            <View style={{ paddingBottom: 10 }}>
+                                {data.map((item, index) => (
+                                    <View key={item.id}>
+                                        {renderItem(item, index)}
+                                    </View>
+                                ))}
+                            </View>
+                        )}
 
-                        <View style={styles.header}>
-                            <Text style={styles.headingRoom}>Phòng</Text>
-                            <Text style={styles.headingContent}>Tổng cộng</Text>
-                            <Text style={styles.headingNote}>Ghi chú</Text>
-                        </View>
+                        <TouchableOpacity onPress={toggleCoc}>
+                            <View style={styles.titleView}>
+                                <Text style={styles.title}>Danh sách phòng đặt cọc</Text>
+                                <FontAwesomeIcon
+                                    icon={isListCocVisible ? faSortUp : faSortDown}
+                                    size={14}
+                                    color="black"
+                                />
+                            </View>
+                        </TouchableOpacity>
+                        {isListCocVisible && (
+                            <View>
+                                {data.map((item, index) => (
+                                    <View key={item.id}>
+                                        {renderItem(item, index)}
+                                    </View>
+                                ))}
+
+                                <TouchableOpacity onPress={() => setOpenAddRoomCoc(true)}
+                                    style={{
+                                        padding: 5,
+                                        flexDirection: 'row',
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        backgroundColor: "#2196F3",
+                                        borderRadius: 5,
+                                        marginVertical: 10
+                                    }}>
+                                    <Text style={styles.textSmallBtn}>Thêm phòng cọc</Text>
+                                </TouchableOpacity>
+                            </View>
+                        )}
+
+                        <TouchableOpacity onPress={toggleTra}>
+                            <View style={styles.titleView}>
+                                <Text style={styles.title}>Danh sách phòng trả</Text>
+                                <FontAwesomeIcon
+                                    icon={isListTraVisible ? faSortUp : faSortDown}
+                                    size={14}
+                                    color="black"
+                                />
+                            </View>
+                        </TouchableOpacity>
+                        {isListTraVisible && (
+                            <View>
+                                {data.map((item, index) => (
+                                    <View key={item.id}>
+                                        {renderItem(item, index)}
+                                    </View>
+                                ))}
+
+                                <TouchableOpacity onPress={() => setOpenAddRoomTra(true)}
+                                    style={{
+                                        padding: 5,
+                                        flexDirection: 'row',
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        backgroundColor: "#2196F3",
+                                        borderRadius: 5,
+                                        marginVertical: 10
+                                    }}>
+                                    <Text style={styles.textSmallBtn}>Thêm phòng trả</Text>
+                                </TouchableOpacity>
+                            </View>
+                        )}
 
                         <View style={styles.list}>
-                            <FlatList
-                                showsVerticalScrollIndicator={false}
-                                data={data}
-                                keyExtractor={item => item.id}
-                                renderItem={({ item, index }) => renderItem(item, index)}
-                            />
+                            <View style={styles.content}>
+                                <Text style={styles.title}>Tổng số điện:</Text>
+                                <TextInput style={styles.inputSum}
+                                    inputMode="numeric"
+                                    readOnly
+                                    value={electricTotal + '   nghìn đồng'}
+                                />
+                            </View>
+
+                            <View style={styles.content}>
+                                <Text style={styles.title}>Tổng số nước:</Text>
+                                <TextInput style={styles.inputSum}
+                                    inputMode="numeric"
+                                    readOnly
+                                    value={waterTotal + '   nghìn đồng'}
+                                />
+                            </View>
+
+                            <View style={styles.content}>
+                                <Text style={styles.title}>Tổng cộng:</Text>
+                                <TextInput style={styles.inputSum}
+                                    inputMode="numeric"
+                                    readOnly
+                                    value={total + '   nghìn đồng'}
+                                />
+                            </View>
+
+                            <View style={styles.content}>
+                                <Text style={styles.title}>Sau cọc/trả còn:</Text>
+                                <TextInput style={styles.inputSum}
+                                    inputMode="numeric"
+                                    readOnly
+                                    value={total + '   nghìn đồng'}
+                                />
+                            </View>
                         </View>
 
-                        <View style={styles.content}>
-                            <Text style={styles.title}>Tổng số điện:</Text>
-                            <TextInput style={styles.inputSum}
-                                inputMode="numeric"
-                                readOnly
-                                value={electricTotal + '   nghìn đồng'}
-                            />
-                        </View>
-
-                        <View style={styles.content}>
-                            <Text style={styles.title}>Tổng số nước:</Text>
-                            <TextInput style={styles.inputSum}
-                                inputMode="numeric"
-                                readOnly
-                                value={waterTotal + '   nghìn đồng'}
-                            />
-                        </View>
-
-                        <View style={styles.content}>
-                            <Text style={styles.title}>Tổng cộng:</Text>
-                            <TextInput style={styles.inputSum}
-                                inputMode="numeric"
-                                readOnly
-                                value={total + '   nghìn đồng'}
+                        <View style={styles.buttons}>
+                            <Button title="Xem trước khi in"
+                                titleStyle={{ fontWeight: 'bold', fontSize: 14 }}
+                                buttonStyle={{
+                                    backgroundColor: '#2196F3',
+                                    borderColor: 'transparent',
+                                    borderWidth: 0,
+                                    borderRadius: 30,
+                                    paddingHorizontal: 15
+                                }}
+                                containerStyle={{
+                                    width: "auto",
+                                    marginTop: 15
+                                }}
+                                onPress={() => setModalVisible(true)}
                             />
                         </View>
                     </View>
             }
-        </View>
+            <Modal
+                animationType="fade"
+                transparent={true}
+                visible={openAddRoomCoc}
+                onRequestClose={() => setOpenAddRoomCoc(!openAddRoomCoc)}
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalAddRoom}>
+                        <View style={styles.modalContent}>
+                            <View style={styles.titleModal}>
+                                <Text style={styles.modalText}>Thêm phòng đặt cọc</Text>
+                            </View>
+
+                            <View style={styles.inputWrapper}>
+                                <Text style={styles.titleInput}>Tên/Số phòng:</Text>
+                                <TextInput style={styles.contentInput}
+                                    onChangeText={(e) => setNewName(e)}
+                                    value={newName} />
+                            </View>
+
+                            <View style={styles.inputWrapper}>
+                                <Text style={styles.titleInput}>Tiền đặt cọc (nghìn đồng):</Text>
+                                <TextInput style={styles.contentInput}
+                                    inputMode="numeric"
+                                    onChangeText={(e) => setNewPrice(e)}
+                                    value={newPrice} />
+                            </View>
+
+                            <View style={styles.buttonModals}>
+                                <Pressable
+                                    style={[styles.buttonAdd, styles.buttonClose]}
+                                    onPress={() => setOpenAddRoomCoc(!openAddRoomCoc)}>
+                                    <Text style={styles.textBtn}>Thoát</Text>
+                                </Pressable>
+
+                                <Pressable
+                                    style={[styles.buttonAdd, styles.buttonSubmit]}
+                                    onPress={HandleNewRoom}>
+                                    <Text style={styles.textBtn}>Thêm</Text>
+                                </Pressable>
+                            </View>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+
+            <Modal
+                animationType="fade"
+                transparent={true}
+                visible={openAddRoomTra}
+                onRequestClose={() => setOpenAddRoomTra(!openAddRoomTra)}
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalAddRoom}>
+                        <View style={styles.modalContent}>
+                            <View style={styles.titleModal}>
+                                <Text style={styles.modalText}>Thêm phòng trả cọc</Text>
+                            </View>
+
+                            <View style={styles.inputWrapper}>
+                                <Text style={styles.titleInput}>Tên/Số phòng:</Text>
+                                <TextInput style={styles.contentInput}
+                                    onChangeText={(e) => setNewName(e)}
+                                    value={newName} />
+                            </View>
+
+                            <View style={styles.inputWrapper}>
+                                <Text style={styles.titleInput}>Tiền trả cọc (nghìn đồng):</Text>
+                                <TextInput style={styles.contentInput}
+                                    inputMode="numeric"
+                                    onChangeText={(e) => setNewPrice(e)}
+                                    value={newPrice} />
+                            </View>
+
+                            <View style={styles.buttonModals}>
+                                <Pressable
+                                    style={[styles.buttonAdd, styles.buttonClose]}
+                                    onPress={() => setOpenAddRoomTra(!openAddRoomTra)}>
+                                    <Text style={styles.textBtn}>Thoát</Text>
+                                </Pressable>
+
+                                <Pressable
+                                    style={[styles.buttonAdd, styles.buttonSubmit]}
+                                    onPress={HandleNewRoom}>
+                                    <Text style={styles.textBtn}>Thêm</Text>
+                                </Pressable>
+                            </View>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+
+            <Modal
+                animationType="fade"
+                transparent={true}
+                visible={modalVisible}
+                onRequestClose={() => setModalVisible(!billPresentation)}
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.modal}>
+                        <View style={styles.modalContent}>
+                            <View style={styles.screenshotContent}
+                                // ref={viewShotRef}
+                                collapsable={false}>
+
+                                <View style={styles.contentHeader}>
+                                    <Text style={styles.titleHeader}>Tháng {1}</Text>
+                                </View>
+
+                                <View style={styles.form}>
+                                    <FlatList
+                                        showsVerticalScrollIndicator={false}
+                                        data={data}
+                                        keyExtractor={item => item.id}
+                                        renderItem={({ item, index }) => renderItem(item, index)}
+                                    />
+                                </View>
+
+                            </View>
+
+                            <View style={styles.buttonModal}>
+                                <Pressable
+                                    style={[styles.button, styles.buttonClose]}
+                                    onPress={() => setModalVisible(false)}>
+                                    <Text style={styles.textBtn}>Thoát</Text>
+                                </Pressable>
+
+                                <Pressable
+                                    style={[styles.button, styles.buttonSave]}
+                                // onPress={CaptureViewShot}
+                                >
+                                    <Text style={styles.textBtn}>Lưu</Text>
+                                </Pressable>
+                            </View>
+
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+        </ScrollView>
     );
 }
 
@@ -302,47 +576,8 @@ const styles = StyleSheet.create({
     tableWrapper: {
         flex: 1,
         marginBottom: 10,
-        paddingVertical: 10,
+        paddingVertical: 20,
         paddingHorizontal: 5,
-    },
-
-    headerTopBar: {
-        backgroundColor: "#629DD5",
-        paddingHorizontal: 12,
-        paddingVertical: 10,
-        borderRadius: 5,
-        elevation: 2,
-        marginBottom: 5
-    },
-
-    headerTopBarText: {
-        fontWeight: "bold",
-        alignSelf: "center",
-        color: "white",
-        fontSize: 16,
-    },
-
-    header: {
-        flexDirection: "row",
-        padding: 10,
-    },
-
-    headingRoom: {
-        flex: 1,
-        fontSize: 14,
-        fontWeight: "bold"
-    },
-
-    headingContent: {
-        flex: 2,
-        fontSize: 14,
-        fontWeight: "bold"
-    },
-
-    headingNote: {
-        flex: 3,
-        fontSize: 14,
-        fontWeight: "bold"
     },
 
     row: {
@@ -358,30 +593,10 @@ const styles = StyleSheet.create({
         backgroundColor: "#fff",
     },
 
-    cellRoom: {
-        fontSize: 14,
-        textAlign: 'left',
-        flex: 1,
-    },
-
-    cellContent: {
-        fontSize: 14,
-        textAlign: 'left',
-        flex: 1.5,
-    },
-
-    cellNote: {
-        paddingVertical: 2,
-        fontSize: 14,
-        textAlign: 'left',
-        flex: 3,
-        borderBottomWidth: 1,
-        borderBottomColor: "gray"
-    },
-
     list: {
-        marginBottom: 10,
-        height: 300
+        marginTop: 10,
+        paddingTop: 15,
+        borderTopWidth: 0.5
     },
 
     content: {
@@ -396,14 +611,197 @@ const styles = StyleSheet.create({
         fontSize: 14,
     },
 
+    titleView: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 15,
+    },
+
     inputSum: {
+        backgroundColor: "white",
+        borderRadius: 10,
+        width: 210,
+        paddingHorizontal: 10,
+        paddingVertical: 2,
+        color: "red",
+        fontSize: 14,
+    },
+
+    inputSumRoom: {
         backgroundColor: "white",
         borderRadius: 10,
         width: 220,
         paddingHorizontal: 10,
         paddingVertical: 2,
-        color: "red",
+        color: "#0B60B0",
         fontSize: 14,
+    },
+
+    buttons: {
+        flexDirection: "row",
+        gap: 10,
+        justifyContent: "flex-end",
+    },
+
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+
+    modal: {
+        width: "95%",
+        backgroundColor: 'white',
+        borderRadius: 20,
+        paddingHorizontal: 10,
+        paddingVertical: 10,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5,
+    },
+
+    modalContent: {
+        width: "100%",
+    },
+
+    screenshotContent: {
+        gap: 10,
+        backgroundColor: "white",
+        padding: 10,
+    },
+
+    contentHeader: {
+        flexDirection: "row",
+        justifyContent: "center"
+    },
+
+    titleHeader: {
+        fontSize: 16,
+        color: "blue",
+        fontWeight: "bold"
+    },
+
+    form: {
+        flexDirection: "row",
+        gap: 40,
+        marginLeft: 10
+    },
+
+    contentScreenShot: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center"
+    },
+
+    title: {
+        fontWeight: "bold",
+        fontSize: 14,
+    },
+
+    buttonModal: {
+        flexDirection: "row",
+        marginTop: 15,
+        justifyContent: "space-evenly"
+    },
+
+    button: {
+        borderRadius: 10,
+        padding: 8,
+        elevation: 2,
+        width: "40%",
+    },
+
+    buttonClose: {
+        backgroundColor: "red",
+    },
+
+    buttonSave: {
+        backgroundColor: '#2196F3',
+    },
+
+    textBtn: {
+        color: 'white',
+        fontWeight: 'bold',
+        textAlign: 'center',
+        fontSize: 15
+    },
+
+    textSmallBtn: {
+        color: 'white',
+        fontWeight: 'bold',
+        textAlign: 'center',
+    },
+
+    modalAddRoom: {
+        width: "90%",
+        backgroundColor: 'white',
+        borderRadius: 15,
+        paddingHorizontal: 15,
+        paddingVertical: 5,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5,
+    },
+
+    inputWrapper: {
+        gap: 5,
+        marginBottom: 10,
+    },
+
+    buttonModals: {
+        flexDirection: "row",
+        justifyContent: "center",
+        gap: 10
+    },
+
+    buttonAdd: {
+        borderRadius: 10,
+        padding: 5,
+        elevation: 2,
+        width: "40%",
+        alignSelf: "center"
+    },
+
+    modalText: {
+        marginBottom: 10,
+        fontSize: 18,
+        textAlign: 'center',
+        fontWeight: "bold"
+    },
+
+    titleInput: {
+        fontSize: 14,
+        textAlign: "left",
+        fontWeight: "bold"
+    },
+
+    contentInput: {
+        backgroundColor: "white",
+        borderRadius: 10,
+        width: "100%",
+        paddingHorizontal: 10,
+        paddingVertical: 2,
+        fontSize: 14,
+        borderColor: 'gray',
+        borderWidth: 1
+    },
+
+    buttonSubmit: {
+        backgroundColor: '#2196F3'
     },
 })
 
