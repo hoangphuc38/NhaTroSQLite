@@ -147,18 +147,6 @@ function HomeScreen({ navigation }) {
         <View style={styles.container}>
             <StatusBar style="dark" />
 
-            {/* <View style={styles.notation}>
-                <View style={styles.empty}>
-                    <View style={styles.symbol}></View>
-                    <Text style={styles.note}>Phòng trống</Text>
-                </View>
-
-                <View style={styles.empty}>
-                    <View style={styles.symbolfull}></View>
-                    <Text style={styles.note}>Phòng đã thuê</Text>
-                </View>
-            </View> */}
-
             <Modal
                 animationType="fade"
                 transparent={true}

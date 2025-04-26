@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { ScrollView, StyleSheet, Text, View, FlatList, TextInput, ActivityIndicator, Modal, Pressable, TouchableOpacity } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
 import { useNavigation } from "@react-navigation/native";
@@ -6,7 +6,9 @@ import { AppContext } from "../../contexts/appContext";
 import { useSQLiteContext } from "expo-sqlite";
 import { Button } from "@rneui/themed/dist/Button";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
-import { faPlus, faSortDown, faSortUp } from "@fortawesome/free-solid-svg-icons";
+import { faSortDown, faSortUp, faTrash } from "@fortawesome/free-solid-svg-icons";
+import * as MediaLibrary from 'expo-media-library';
+import { captureRef } from "react-native-view-shot";
 
 function SummaryScreen() {
     const navigation = useNavigation();
@@ -42,11 +44,14 @@ function SummaryScreen() {
     const [isFocusMonth, setIsFocusMonth] = useState(false);
     const [year, setYear] = useState(null);
     const [isFocusYear, setIsFocusYear] = useState(false);
-    const [data, setData] = useState([]);
     const [electricTotal, setElectricTotal] = useState('');
     const [waterTotal, setWaterTotal] = useState('');
     const [total, setTotal] = useState('');
     const [totalAfterModify, setTotalAfterModify] = useState('');
+
+    const [data, setData] = useState([]);
+    const [dataCoc, setDataCoc] = useState([]);
+    const [dataTra, setDataTra] = useState([]);
 
     const [modalVisible, setModalVisible] = useState(false);
     const [openAddRoomCoc, setOpenAddRoomCoc] = useState(false);
@@ -57,11 +62,16 @@ function SummaryScreen() {
     const [isListCocVisible, setIsListCocVisible] = useState(false);
     const [isListTraVisible, setIsListTraVisible] = useState(false);
 
-    const [newType, setNewType] = useState(1);
     const [newName, setNewName] = useState("");
     const [newPrice, setNewPrice] = useState("");
 
+    const viewShotRef = useRef();
 
+    const [status, requestPermission] = MediaLibrary.usePermissions();
+
+    if (status == null) {
+        requestPermission();
+    }
 
     useEffect(() => {
         setLoading(true);
@@ -149,6 +159,24 @@ function SummaryScreen() {
         }
     }
 
+    const CaptureViewShot = async () => {
+        try {
+            const localUri = await captureRef(viewShotRef, {
+                height: 440,
+                quality: 1,
+            });
+
+            await MediaLibrary.saveToLibraryAsync(localUri);
+            if (localUri) {
+                alert("Lưu ảnh thành công, vui lòng kiểm tra bộ sưu tập");
+            }
+
+            setModalVisible(false);
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
     const toggleList = () => {
         setIsListRoomVisible(!isListRoomVisible);
     };
@@ -161,8 +189,40 @@ function SummaryScreen() {
         setIsListTraVisible(!isListTraVisible);
     }
 
-    const HandleNewRoom = () => {
+    const HandleNewRoomCoc = (tenphong, tientracoc) => {
+        const newdataCoc = [...dataCoc, { tenphong, tientracoc }];
+        const newTotal = parseInt(totalAfterModify) + parseInt(tientracoc);
 
+        setNewName("");
+        setNewPrice("");
+        setDataCoc(newdataCoc);
+        setOpenAddRoomCoc(false);
+        setTotalAfterModify(newTotal.toString());
+    }
+
+    const HandleNewRoomTra = (tenphong, tientracoc) => {
+        const newdataTra = [...dataTra, { tenphong, tientracoc }];
+        const newTotal = parseInt(totalAfterModify) - parseInt(tientracoc);
+
+        setNewName("");
+        setNewPrice("");
+        setDataTra(newdataTra);
+        setOpenAddRoomTra(false);
+        setTotalAfterModify(newTotal.toString());
+    }
+
+    const HandleDeleteItemCoc = (index) => {
+        const newTotal = parseInt(totalAfterModify) - parseInt(dataCoc[index].tientracoc);
+
+        setDataCoc(dataCoc.filter((_, i) => i !== index));
+        setTotalAfterModify(newTotal.toString());
+    }
+
+    const HandleDeleteItemTra = (index) => {
+        const newTotal = parseInt(totalAfterModify) + parseInt(dataTra[index].tientracoc);
+
+        setDataTra(dataTra.filter((_, i) => i !== index));
+        setTotalAfterModify(newTotal.toString());
     }
 
     const renderItem = (item, index) => {
@@ -175,6 +235,62 @@ function SummaryScreen() {
                 >
                     <Text>{item.tonghoadon.toString()}</Text>
                 </TextInput>
+            </View>
+        )
+    }
+
+    const renderItemCoc = (item, index) => {
+        return (
+            <View style={styles.content}>
+                <Text style={styles.title}>Phòng {item.tenphong} :</Text>
+                <View style={{ flexDirection: "row", gap: 10, alignItems: "center" }}>
+                    <TextInput style={styles.inputSumRoom}
+                        inputMode="numeric"
+                        readOnly
+                    >
+                        <Text>{item.tientracoc}</Text>
+                    </TextInput>
+                    <TouchableOpacity onPress={() => HandleDeleteItemCoc(index)}>
+                        <FontAwesomeIcon icon={faTrash} color="red" size={14} />
+                    </TouchableOpacity>
+                </View>
+            </View>
+        )
+    }
+
+    const renderItemTra = (item, index) => {
+        return (
+            <View style={styles.content}>
+                <Text style={styles.title}>Phòng {item.tenphong} :</Text>
+                <View style={{ flexDirection: "row", gap: 10, alignItems: "center" }}>
+                    <TextInput style={styles.inputSumRoom}
+                        inputMode="numeric"
+                        readOnly
+                    >
+                        <Text>{item.tientracoc}</Text>
+                    </TextInput>
+                    <TouchableOpacity onPress={() => HandleDeleteItemTra(index)}>
+                        <FontAwesomeIcon icon={faTrash} color="red" size={14} />
+                    </TouchableOpacity>
+                </View>
+            </View>
+        )
+    }
+
+    const renderScreenShotCoc = (item, index) => {
+        return (
+            <View style={{ flexDirection: 'row', gap: 10, marginBottom: 10 }}>
+                <Text>Phòng {item.tenphong} cọc</Text>
+                <Text >{item.tientracoc}.000</Text>
+            </View>
+        )
+    }
+
+    const renderScreenShotTra = (item, index) => {
+        return (
+            <View style={{ flexDirection: 'row', gap: 10, marginBottom: 10 }}>
+                <Text>Phòng {item.tenphong} trả phòng</Text>
+                <Text >{item.tientracoc}.000</Text>
             </View>
         )
     }
@@ -267,9 +383,9 @@ function SummaryScreen() {
                         </TouchableOpacity>
                         {isListCocVisible && (
                             <View>
-                                {data.map((item, index) => (
-                                    <View key={item.id}>
-                                        {renderItem(item, index)}
+                                {dataCoc.map((item, index) => (
+                                    <View key={index}>
+                                        {renderItemCoc(item, index)}
                                     </View>
                                 ))}
 
@@ -300,9 +416,9 @@ function SummaryScreen() {
                         </TouchableOpacity>
                         {isListTraVisible && (
                             <View>
-                                {data.map((item, index) => (
-                                    <View key={item.id}>
-                                        {renderItem(item, index)}
+                                {dataTra.map((item, index) => (
+                                    <View key={index}>
+                                        {renderItemTra(item, index)}
                                     </View>
                                 ))}
 
@@ -354,7 +470,7 @@ function SummaryScreen() {
                                 <TextInput style={styles.inputSum}
                                     inputMode="numeric"
                                     readOnly
-                                    value={total + '   nghìn đồng'}
+                                    value={totalAfterModify + '   nghìn đồng'}
                                 />
                             </View>
                         </View>
@@ -415,7 +531,7 @@ function SummaryScreen() {
 
                                 <Pressable
                                     style={[styles.buttonAdd, styles.buttonSubmit]}
-                                    onPress={HandleNewRoom}>
+                                    onPress={() => HandleNewRoomCoc(newName, newPrice)}>
                                     <Text style={styles.textBtn}>Thêm</Text>
                                 </Pressable>
                             </View>
@@ -461,7 +577,7 @@ function SummaryScreen() {
 
                                 <Pressable
                                     style={[styles.buttonAdd, styles.buttonSubmit]}
-                                    onPress={HandleNewRoom}>
+                                    onPress={() => HandleNewRoomTra(newName, newPrice)}>
                                     <Text style={styles.textBtn}>Thêm</Text>
                                 </Pressable>
                             </View>
@@ -474,17 +590,17 @@ function SummaryScreen() {
                 animationType="fade"
                 transparent={true}
                 visible={modalVisible}
-                onRequestClose={() => setModalVisible(!billPresentation)}
+                onRequestClose={() => setModalVisible(!modalVisible)}
             >
                 <View style={styles.modalContainer}>
                     <View style={styles.modal}>
                         <View style={styles.modalContent}>
                             <View style={styles.screenshotContent}
-                                // ref={viewShotRef}
+                                ref={viewShotRef}
                                 collapsable={false}>
 
                                 <View style={styles.contentHeader}>
-                                    <Text style={styles.titleHeader}>Tháng {1}</Text>
+                                    <Text style={styles.titleHeader}>{getThisMonth()}</Text>
                                 </View>
 
                                 <View style={styles.form}>
@@ -494,6 +610,25 @@ function SummaryScreen() {
                                         keyExtractor={item => item.id}
                                         renderItem={({ item, index }) => renderItem(item, index)}
                                     />
+                                    <FlatList
+                                        showsVerticalScrollIndicator={false}
+                                        data={dataCoc}
+                                        keyExtractor={item => item.id}
+                                        renderItem={({ item, index }) => renderScreenShotCoc(item, index)}
+                                    />
+                                    <FlatList
+                                        showsVerticalScrollIndicator={false}
+                                        data={dataTra}
+                                        keyExtractor={item => item.id}
+                                        renderItem={({ item, index }) => renderScreenShotTra(item, index)}
+                                    />
+                                </View>
+
+                                <View style={styles.totalForm}>
+                                    <Text style={{ fontWeight: 'bold' }}>Tổng cộng:</Text>
+                                    <Text style={{ fontSize: 16, fontWeight: 'bold' }}>
+                                        {totalAfterModify}.000
+                                    </Text>
                                 </View>
 
                             </View>
@@ -507,7 +642,7 @@ function SummaryScreen() {
 
                                 <Pressable
                                     style={[styles.button, styles.buttonSave]}
-                                // onPress={CaptureViewShot}
+                                    onPress={CaptureViewShot}
                                 >
                                     <Text style={styles.textBtn}>Lưu</Text>
                                 </Pressable>
@@ -690,9 +825,17 @@ const styles = StyleSheet.create({
     },
 
     form: {
-        flexDirection: "row",
-        gap: 40,
+        gap: 10,
         marginLeft: 10
+    },
+
+    totalForm: {
+        flexDirection: "row",
+        alignItems: 'baseline',
+        gap: 40,
+        marginLeft: 10,
+        borderTopWidth: 0.5,
+        paddingTop: 10
     },
 
     contentScreenShot: {
