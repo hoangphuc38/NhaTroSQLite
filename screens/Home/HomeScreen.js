@@ -293,6 +293,7 @@ function HomeScreen({ navigation }) {
                                 onPress={() => ShowRoomInfo(item)} />
                         }
                         keyExtractor={item => item.id}
+                        showsVerticalScrollIndicator={false}
                     />
             }
 

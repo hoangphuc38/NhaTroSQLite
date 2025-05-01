@@ -277,6 +277,15 @@ function SummaryScreen() {
         )
     }
 
+    const renderScreenShotItem = (item, index) => {
+        return (
+            <View style={styles.content}>
+                <Text style={styles.title}>Phòng {item.tenphong} :</Text>
+                <Text style={styles.tonghoadonText}>{item.tonghoadon.toString()}</Text>
+            </View>
+        )
+    }
+
     const renderScreenShotCoc = (item, index) => {
         return (
             <View style={{ flexDirection: 'row', gap: 10, marginBottom: 10 }}>
@@ -353,12 +362,15 @@ function SummaryScreen() {
                     <View style={styles.tableWrapper}>
                         <TouchableOpacity onPress={toggleList}>
                             <View style={styles.titleView}>
-                                <Text style={styles.title}>Danh sách các phòng</Text>
-                                <FontAwesomeIcon
-                                    icon={isListRoomVisible ? faSortUp : faSortDown}
-                                    size={14}
-                                    color="black"
-                                />
+                                <Text style={styles.kindofContent}>Danh sách các phòng</Text>
+                                <View style={styles.iconContainer}>
+                                    <FontAwesomeIcon
+                                        icon={isListRoomVisible ? faSortUp : faSortDown}
+                                        size={14}
+                                        color="blue"
+                                        style={isListRoomVisible ? { marginTop: 7 } : {}}
+                                    />
+                                </View>
                             </View>
                         </TouchableOpacity>
                         {isListRoomVisible && (
@@ -373,12 +385,15 @@ function SummaryScreen() {
 
                         <TouchableOpacity onPress={toggleCoc}>
                             <View style={styles.titleView}>
-                                <Text style={styles.title}>Danh sách phòng đặt cọc</Text>
-                                <FontAwesomeIcon
-                                    icon={isListCocVisible ? faSortUp : faSortDown}
-                                    size={14}
-                                    color="black"
-                                />
+                                <Text style={styles.kindofContent}>Danh sách phòng đặt cọc</Text>
+                                <View style={styles.iconContainer}>
+                                    <FontAwesomeIcon
+                                        icon={isListCocVisible ? faSortUp : faSortDown}
+                                        size={14}
+                                        color="blue"
+                                        style={isListCocVisible ? { marginTop: 7 } : {}}
+                                    />
+                                </View>
                             </View>
                         </TouchableOpacity>
                         {isListCocVisible && (
@@ -406,12 +421,15 @@ function SummaryScreen() {
 
                         <TouchableOpacity onPress={toggleTra}>
                             <View style={styles.titleView}>
-                                <Text style={styles.title}>Danh sách phòng trả</Text>
-                                <FontAwesomeIcon
-                                    icon={isListTraVisible ? faSortUp : faSortDown}
-                                    size={14}
-                                    color="black"
-                                />
+                                <Text style={styles.kindofContent}>Danh sách phòng trả</Text>
+                                <View style={styles.iconContainer}>
+                                    <FontAwesomeIcon
+                                        icon={isListTraVisible ? faSortUp : faSortDown}
+                                        size={14}
+                                        color="blue"
+                                        style={isListTraVisible ? { marginTop: 7 } : {}}
+                                    />
+                                </View>
                             </View>
                         </TouchableOpacity>
                         {isListTraVisible && (
@@ -605,10 +623,13 @@ function SummaryScreen() {
 
                                 <View style={styles.form}>
                                     <FlatList
+                                        key={`flatlist-${2}`}
                                         showsVerticalScrollIndicator={false}
                                         data={data}
                                         keyExtractor={item => item.id}
-                                        renderItem={({ item, index }) => renderItem(item, index)}
+                                        renderItem={({ item, index }) => renderScreenShotItem(item, index)}
+                                        numColumns={2}
+                                        columnWrapperStyle={{ justifyContent: 'space-between', marginBottom: 5 }}
                                     />
                                     <FlatList
                                         showsVerticalScrollIndicator={false}
@@ -741,16 +762,17 @@ const styles = StyleSheet.create({
         marginBottom: 7,
     },
 
-    title: {
-        fontWeight: "bold",
-        fontSize: 14,
-    },
-
     titleView: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         marginBottom: 15,
+    },
+
+    iconContainer: {
+        height: 20,
+        width: 20,
+        alignItems: 'center',
     },
 
     inputSum: {
@@ -826,14 +848,13 @@ const styles = StyleSheet.create({
 
     form: {
         gap: 10,
-        marginLeft: 10
+        width: '100%',
     },
 
     totalForm: {
         flexDirection: "row",
         alignItems: 'baseline',
         gap: 40,
-        marginLeft: 10,
         borderTopWidth: 0.5,
         paddingTop: 10
     },
@@ -841,12 +862,23 @@ const styles = StyleSheet.create({
     contentScreenShot: {
         flexDirection: "row",
         justifyContent: "space-between",
-        alignItems: "center"
+        alignItems: "center",
     },
 
     title: {
         fontWeight: "bold",
         fontSize: 14,
+    },
+
+    tonghoadonText: {
+        marginLeft: 10,
+        color: "#0B60B0"
+    },
+
+    kindofContent: {
+        fontSize: 16,
+        fontWeight: "bold",
+        color: 'blue'
     },
 
     buttonModal: {
