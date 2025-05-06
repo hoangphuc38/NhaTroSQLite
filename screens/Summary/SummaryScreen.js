@@ -37,7 +37,7 @@ function SummaryScreen() {
         { label: '2029', value: '2029' },
     ];
 
-    const { userInfo } = useContext(AppContext);
+    const { userInfo, totalAfterModify, setTotalAfterModify } = useContext(AppContext);
     const db = useSQLiteContext();
 
     const [month, setMonth] = useState(null);
@@ -47,7 +47,7 @@ function SummaryScreen() {
     const [electricTotal, setElectricTotal] = useState('');
     const [waterTotal, setWaterTotal] = useState('');
     const [total, setTotal] = useState('');
-    const [totalAfterModify, setTotalAfterModify] = useState('');
+    //const [totalAfterModify, setTotalAfterModify] = useState('');
 
     const [data, setData] = useState([]);
     const [dataCoc, setDataCoc] = useState([]);
@@ -107,7 +107,11 @@ function SummaryScreen() {
             setElectricTotal(response.tongdien.toString());
             setWaterTotal(response.tongnuoc.toString());
             setTotal(response.tongtientongket.toString());
-            setTotalAfterModify(response.tongtientongket.toString());
+
+            if (parseInt(totalAfterModify) === 0 && parseInt(totalAfterModify) !== response.tongtientongket) {
+                setTotalAfterModify(response.tongtientongket.toString());
+            }
+
             setLoading(false);
         }
         catch (error) {
@@ -289,8 +293,8 @@ function SummaryScreen() {
     const renderScreenShotCoc = (item, index) => {
         return (
             <View style={{ flexDirection: 'row', gap: 10, marginBottom: 10 }}>
-                <Text>Phòng {item.tenphong} cọc</Text>
-                <Text >{item.tientracoc}.000</Text>
+                <Text style={{ fontWeight: 'bold' }}>Phòng {item.tenphong} cọc</Text>
+                <Text>{item.tientracoc}.000</Text>
             </View>
         )
     }
@@ -298,7 +302,7 @@ function SummaryScreen() {
     const renderScreenShotTra = (item, index) => {
         return (
             <View style={{ flexDirection: 'row', gap: 10, marginBottom: 10 }}>
-                <Text>Phòng {item.tenphong} trả phòng</Text>
+                <Text style={{ fontWeight: 'bold' }}>Phòng {item.tenphong} trả phòng</Text>
                 <Text >{item.tientracoc}.000</Text>
             </View>
         )
