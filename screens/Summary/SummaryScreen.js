@@ -1,7 +1,7 @@
-import React, { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { ScrollView, StyleSheet, Text, View, FlatList, TextInput, ActivityIndicator, Modal, Pressable, TouchableOpacity } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
-import { useNavigation } from "@react-navigation/native";
+import { useIsFocused } from "@react-navigation/native";
 import { AppContext } from "../../contexts/appContext";
 import { useSQLiteContext } from "expo-sqlite";
 import { Button } from "@rneui/themed/dist/Button";
@@ -11,7 +11,7 @@ import * as MediaLibrary from 'expo-media-library';
 import { captureRef } from "react-native-view-shot";
 
 function SummaryScreen() {
-    const navigation = useNavigation();
+    const isFocused = useIsFocused();
 
     const MONTH = [
         { label: 'Tháng 1', value: '1' },
@@ -37,7 +37,7 @@ function SummaryScreen() {
         { label: '2029', value: '2029' },
     ];
 
-    const { userInfo, totalAfterModify, setTotalAfterModify } = useContext(AppContext);
+    const { userInfo, sumCoc, setSumCoc, sumTra, setSumTra } = useContext(AppContext);
     const db = useSQLiteContext();
 
     const [month, setMonth] = useState(null);
@@ -47,7 +47,6 @@ function SummaryScreen() {
     const [electricTotal, setElectricTotal] = useState('');
     const [waterTotal, setWaterTotal] = useState('');
     const [total, setTotal] = useState('');
-    //const [totalAfterModify, setTotalAfterModify] = useState('');
 
     const [data, setData] = useState([]);
     const [dataCoc, setDataCoc] = useState([]);
@@ -65,6 +64,8 @@ function SummaryScreen() {
     const [newName, setNewName] = useState("");
     const [newPrice, setNewPrice] = useState("");
 
+    const [totalAfterModify, setTotalAfterModify] = useState('0');
+
     const viewShotRef = useRef();
 
     const [status, requestPermission] = MediaLibrary.usePermissions();
@@ -74,13 +75,10 @@ function SummaryScreen() {
     }
 
     useEffect(() => {
-        setLoading(true);
-        const unsubscribe = navigation.addListener('focus', getData);
-
-        getData();
-
-        return unsubscribe;
-    }, [navigation])
+        if (isFocused) {
+            getData();
+        }
+    }, [isFocused]);
 
     const getData = async () => {
         try {
@@ -108,9 +106,11 @@ function SummaryScreen() {
             setWaterTotal(response.tongnuoc.toString());
             setTotal(response.tongtientongket.toString());
 
-            if (parseInt(totalAfterModify) === 0 && parseInt(totalAfterModify) !== response.tongtientongket) {
+            if (parseInt(totalAfterModify) === '0') {
                 setTotalAfterModify(response.tongtientongket.toString());
             }
+
+            setTotalAfterModify((response.tongtientongket + sumCoc - sumTra).toString())
 
             setLoading(false);
         }
@@ -197,27 +197,30 @@ function SummaryScreen() {
         const newdataCoc = [...dataCoc, { tenphong, tientracoc }];
         const newTotal = parseInt(totalAfterModify) + parseInt(tientracoc);
 
+        setSumCoc(sumCoc + parseInt(tientracoc));
+        setTotalAfterModify(newTotal.toString());
         setNewName("");
         setNewPrice("");
         setDataCoc(newdataCoc);
         setOpenAddRoomCoc(false);
-        setTotalAfterModify(newTotal.toString());
     }
 
     const HandleNewRoomTra = (tenphong, tientracoc) => {
         const newdataTra = [...dataTra, { tenphong, tientracoc }];
         const newTotal = parseInt(totalAfterModify) - parseInt(tientracoc);
 
+        setSumTra(sumTra + parseInt(tientracoc))
+        setTotalAfterModify(newTotal.toString());
         setNewName("");
         setNewPrice("");
         setDataTra(newdataTra);
         setOpenAddRoomTra(false);
-        setTotalAfterModify(newTotal.toString());
     }
 
     const HandleDeleteItemCoc = (index) => {
         const newTotal = parseInt(totalAfterModify) - parseInt(dataCoc[index].tientracoc);
 
+        setSumCoc(sumCoc - parseInt(dataCoc[index].tientracoc));
         setDataCoc(dataCoc.filter((_, i) => i !== index));
         setTotalAfterModify(newTotal.toString());
     }
@@ -225,6 +228,7 @@ function SummaryScreen() {
     const HandleDeleteItemTra = (index) => {
         const newTotal = parseInt(totalAfterModify) + parseInt(dataTra[index].tientracoc);
 
+        setSumTra(sumTra - parseInt(dataTra[index].tientracoc));
         setDataTra(dataTra.filter((_, i) => i !== index));
         setTotalAfterModify(newTotal.toString());
     }
@@ -622,7 +626,7 @@ function SummaryScreen() {
                                 collapsable={false}>
 
                                 <View style={styles.contentHeader}>
-                                    <Text style={styles.titleHeader}>{getThisMonth()}</Text>
+                                    <Text style={styles.titleHeader}>{getThisMonth()}/{getThisYear()}</Text>
                                 </View>
 
                                 <View style={styles.form}>

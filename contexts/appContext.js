@@ -6,7 +6,8 @@ export const AppProvider = ({ children }) => {
     const [openAddRoom, setOpenAddRoom] = useState(false);
     const [roomID, setRoomID] = useState('')
     const [userInfo, setUserInfo] = useState('');
-    const [totalAfterModify, setTotalAfterModify] = useState('0');
+    const [sumCoc, setSumCoc] = useState(0);
+    const [sumTra, setSumTra] = useState(0);
 
     return (
         <AppContext.Provider
@@ -14,7 +15,8 @@ export const AppProvider = ({ children }) => {
                 openAddRoom, setOpenAddRoom,
                 roomID, setRoomID,
                 userInfo, setUserInfo,
-                totalAfterModify, setTotalAfterModify
+                sumCoc, setSumCoc,
+                sumTra, setSumTra,
             }}>
             {children}
         </AppContext.Provider>
