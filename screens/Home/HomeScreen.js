@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { View, Text, FlatList, Modal, Pressable, TouchableOpacity, TextInput } from "react-native"
+import { View, Text, FlatList, Modal, Pressable, TouchableOpacity, TextInput, Alert } from "react-native"
 import styles from "./styles";
 import { StatusBar } from "expo-status-bar";
 import Room from "../../components/Room";
@@ -79,7 +79,7 @@ function HomeScreen({ navigation }) {
             setNewName("");
             setNewPrice("");
             setOpenAddRoom(false);
-            alert("Thêm phòng thành công");
+            Alert.alert("Thành công", "Thêm phòng thành công");
             setLoading(true);
         }
         catch (error) {
@@ -102,7 +102,7 @@ function HomeScreen({ navigation }) {
             setRoomTypeUpdate(1);
             setRoomPriceUpdate("");
             setModalInfoRoom(false);
-            alert("Cập nhật thành công");
+            Alert.alert("Thành công", "Cập nhật thành công");
             setLoading(true);
         }
         catch (error) {
@@ -131,7 +131,7 @@ function HomeScreen({ navigation }) {
                 )
                 getData();
             })
-            alert("Xóa phòng thành công");
+            Alert.alert("Thành công", "Xóa phòng thành công");
             setModalDelete(false);
             setLoading(true);
         }

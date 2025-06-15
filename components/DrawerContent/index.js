@@ -4,13 +4,39 @@ import { DrawerContentScrollView, DrawerItem, DrawerItemList } from '@react-navi
 import { Avatar, Title } from 'react-native-paper';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faRightFromBracket } from '@fortawesome/free-solid-svg-icons';
+import { faRightFromBracket, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { useContext } from 'react';
 import { AppContext } from '../../contexts/appContext';
+import { useSQLiteContext } from "expo-sqlite";
 
 function DrawerContent(props) {
     const { navigation } = props;
     const { setUserInfo, userInfo } = useContext(AppContext);
+    const db = useSQLiteContext();
+
+    const handleClearMemory = () => {
+        Alert.alert(
+            "Xác nhận giải phóng bộ nhớ",
+            "Chỉ dữ liệu về tổng kết tháng và các hóa đơn phòng sẽ bị xóa, bạn có chắc chắn?",
+            [
+                { text: "Hủy", onPress: () => { }, style: "cancel" },
+                {
+                    text: "Đồng ý",
+                    onPress: async () => {
+                        await db.withTransactionAsync(async () => {
+                            await db.runAsync('DELETE FROM HoaDonPhong')
+                        })
+                        await db.withTransactionAsync(async () => {
+                            await db.runAsync('DELETE FROM TongKetThang')
+                        })
+                        setUserInfo({});
+                        navigation.navigate('Đăng nhập');
+                        Alert.alert("Thành công", "Đã giải phóng bộ nhớ. Vui lòng đăng nhập lại")
+                    },
+                },
+            ]
+        );
+    }
 
     const handleLogout = () => {
         Alert.alert(
@@ -52,6 +78,11 @@ function DrawerContent(props) {
                 <DrawerItemList {...props} />
             </DrawerContentScrollView>
             <View style={styles.bottomDrawerSection}>
+                <DrawerItem
+                    icon={() => <FontAwesomeIcon icon={faTrash} style={{ marginRight: -20 }} />}
+                    label="Giải phóng bộ nhớ"
+                    onPress={handleClearMemory}
+                />
                 <DrawerItem
                     icon={() => <FontAwesomeIcon icon={faRightFromBracket} style={{ marginRight: -20 }} />}
                     label="Đăng xuất"

@@ -307,7 +307,7 @@ function SummaryScreen() {
         return (
             <View style={{ flexDirection: 'row', gap: 10, marginBottom: 10 }}>
                 <Text style={{ fontWeight: 'bold' }}>Phòng {item.tenphong} trả phòng</Text>
-                <Text >{item.tientracoc}.000</Text>
+                <Text >-{item.tientracoc}.000</Text>
             </View>
         )
     }
